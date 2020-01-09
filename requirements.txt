@@ -8,7 +8,7 @@ cffi==1.12.3
 chardet==3.0.4
 Click==7.0
 crypto==1.4.1
-cryptography==1.9
+cryptography==2.3
 Django==2.2.1
 Flask==1.0.2
 Flask-Mail==0.9.1
