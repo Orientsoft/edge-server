@@ -4,6 +4,6 @@ Flask-Script==2.0.6
 Flask-SQLAlchemy==2.4.1
 kubernetes==10.0.1
 redis==3.3.11
-mysqlclient==1.4.6
+PyMySQL==0.9.3
 pyjwt==1.7.1
 boto3==1.10.46
