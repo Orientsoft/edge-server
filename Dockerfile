@@ -15,15 +15,7 @@ RUN apk --no-cache add \
                        fribidi-dev \
                        gcc \
                        musl-dev \
-                       g++ \
-                       libc-dev \
-                       linux-headers \
-                       mariadb-dev \
-                       python3-dev \
-                       postgresql-dev \
-                       mysql-dev \
-                       libffi-dev \
-                       openssl-dev
+                       g++
 
 RUN mkdir /install
 WORKDIR /install

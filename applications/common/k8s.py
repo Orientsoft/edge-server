@@ -114,7 +114,7 @@ class CreateDeploy:
         self.image = image  # service.image
 
     # node_has_task.devicename
-    def apply(self, devicename):
+    def apply(self, devicename, nodename):
         env = self.kubernetes['env'] if 'env' in self.kubernetes else []
         volumeMounts = self.kubernetes['volumeMounts'] if 'volumeMounts' in self.kubernetes else []
         volumes = self.kubernetes['volumes'] if 'volumes' in self.kubernetes else []
@@ -123,15 +123,16 @@ class CreateDeploy:
         })
         body = {'apiVersion': 'apps/v1',
                 'kind': 'Deployment',
-                'metadata': {'name': 'pytorch', 'namespace': 'default'},
+                'metadata': {'name': devicename, 'namespace': 'default'},
                 'spec':
                     {'replicas': 1,
                      'selector': {'matchLabels': {'app': 'edge', 'service': 'server'}},
                      'template':
                          {'metadata': {'labels': {'app': 'edge', 'service': 'server'}},
                           'spec':
-                              {'containers':
-                                   [{'name': 'pytorch',
+                              {'nodeName': nodename,
+                               'containers':
+                                   [{'name': devicename,
                                      'image': self.image,
                                      'volumeMounts': volumeMounts,
                                      'env': env,
@@ -148,6 +149,14 @@ class CreateDeploy:
         except Exception as e:
             print(e)
             return False
+
+
+def delete_deploy(name):
+    try:
+        k8s_apps_v1.delete_namespaced_deployment(name=name, namespace='default')
+        return True
+    except Exception as e:
+        return False
 
 
 def get_node_status(name):

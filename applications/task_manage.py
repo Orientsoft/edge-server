@@ -185,18 +185,26 @@ class TaskDetailAction(Resource):
 
     def post(self, task_id):
         from models.task import Task
+        from models.node import NodesHasTask
+        from applications.common.k8s import CreateDeploy,delete_deploy
         from app import db
         task = Task.query.get(task_id)
         if not task:
             return '任务不存在', 400
         operator = request.json.get('operator')  # start / stop
+        alldevice = NodesHasTask.query.filter_by(task_id=task_id).all()
         if operator == 'start':
             task.running = True
+            kubernetes = json.loads(task.services.kubernetes)
+            c = CreateDeploy(kubernetes, task.services.image)
+            for a in alldevice:
+                if not c.apply(a.device_name,a.nodes.name):
+                    return '启动失败',400
         elif operator == 'stop':
             task.running = False
+            for a in alldevice:
+                if not delete_deploy(a.device_name):
+                    return '停止失败',400
+            # TODO 删除deployment
         db.session.commit()
-        # todo 根据running状态，停止或启动应用
-        '''
-        1.查询node_has_task， task_id = task_id  所有device
-        2.遍历所有device。起pod
-        '''
+
