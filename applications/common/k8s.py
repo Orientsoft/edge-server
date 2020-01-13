@@ -13,8 +13,7 @@ def create_node(name):
         "metadata": {
             "name": name,
             "labels": {
-                "name": "edge-node",
-                "node-role.kubernetes.io/edge": ""
+                "name": "edge-node"
             }
         }
     }
@@ -75,7 +74,7 @@ class CreateDevice:
                 'status':
                     {'twins': [{
                         'propertyName': 'payload',
-                        'desired': {'metadata': {'type': 'string'}, 'value': '{}'}
+                        'desired': {'metadata': {'type': 'string'}, 'value': 'e30K'}
                     }]
                     }
                 }
@@ -131,6 +130,7 @@ class CreateDeploy:
                          {'metadata': {'labels': {'name': 'edge-node'}},
                           'spec':
                               {'nodeName': nodename,
+                               'hostNetwork': True,
                                'containers':
                                    [{'name': devicename,
                                      'image': self.image,
