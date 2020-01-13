@@ -54,6 +54,7 @@ class TaskAction(Resource):
 
     def get(self):
         from models.task import Task
+        from models.node import NodesHasTask
         running = request.args.get('running', None)
         services_id = request.args.get('service_id', None)
         dataObj = Task.query
@@ -76,6 +77,7 @@ class TaskAction(Resource):
                 "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
                                                                                      datetime.datetime) else r.updatedAt,
                 "token": r.token,
+                "nodeids":NodesHasTask.get_node_ids(str(r.id))
             })
         return returnObj
 
@@ -168,19 +170,6 @@ class TaskDetailAction(Resource):
         returnObj['task_token'] = task.token
         # returnObj['service'] = {"name": task.services.name, "description": task.services.description,
         #                         "image": task.services.image}
-
-        tagids = ServicesHasTag.get_tag_ids(task.services.id)[str(task.services.id)]  # ['1','2']
-        dataObj = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(tagids)).all()
-        for d in dataObj:
-            returnObj['allNodes'].append({
-                "node_id": d.nodes_id,
-                "node_name": d.nodes.name,
-                "node_arch": d.nodes.arch_class.name,
-                "node_parallel": d.nodes.parallel,
-                "node_online": d.nodes.online,
-                "node_createdAt": d.nodes.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.nodes.createdAt,
-                                                                                                datetime.datetime) else d.nodes.createdAt,
-            })
         return returnObj
 
     def post(self, task_id):

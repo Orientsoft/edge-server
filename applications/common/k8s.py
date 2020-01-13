@@ -126,9 +126,9 @@ class CreateDeploy:
                 'metadata': {'name': devicename, 'namespace': 'default'},
                 'spec':
                     {'replicas': 1,
-                     'selector': {'matchLabels': {'app': 'edge', 'service': 'server'}},
+                     'selector': {'matchLabels': {'name': 'edge-node'}},
                      'template':
-                         {'metadata': {'labels': {'app': 'edge', 'service': 'server'}},
+                         {'metadata': {'labels': {'name': 'edge-node'}},
                           'spec':
                               {'nodeName': nodename,
                                'containers':

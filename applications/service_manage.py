@@ -107,3 +107,23 @@ class ServiceAction(Resource):
         if s:
             db.session.delete(s)
             db.session.commit()
+
+
+class ServiceNodeAction(Resource):
+    def get(self, service_id):
+        from models.service import ServicesHasTag
+        from models.node import NodesHasTag
+        result = []
+        tagids = ServicesHasTag.get_tag_ids(service_id)[str(service_id)]  # ['1','2']
+        dataObj = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(tagids)).all()
+        for d in dataObj:
+            result.append({
+                "id": d.nodes_id,
+                "name": d.nodes.name,
+                "arch": d.nodes.arch_class.name,
+                "parallel": d.nodes.parallel,
+                "online": d.nodes.online,
+                "createdAt": d.nodes.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.nodes.createdAt,
+                                                                                           datetime.datetime) else d.nodes.createdAt,
+            })
+        return result

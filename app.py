@@ -3,7 +3,7 @@ from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
 from applications.tag_manage import TagAction
-from applications.service_manage import ServiceAction
+from applications.service_manage import ServiceAction, ServiceNodeAction
 from applications.task_manage import TaskAction, TaskDetailAction
 from applications.nodeArch import ArchAction
 from applications.nodes import NodeAction, NodeDeployLink
@@ -27,6 +27,7 @@ k8s_apps_v1 = client.AppsV1Api()
 api.add_resource(TagAction, '/tag')
 api.add_resource(TagNodeAction, '/tag/node')
 api.add_resource(ServiceAction, '/service')
+api.add_resource(ServiceNodeAction, '/service/node/<service_id>')
 api.add_resource(TaskAction, '/task')
 api.add_resource(TaskDetailAction, '/task/<task_id>')
 api.add_resource(ArchAction, '/arch')
@@ -42,7 +43,8 @@ def send_file(filename):
 
 @app.route('/test/<name>', methods=['GET'])
 def test(name):
-    from applications.common.k8s import create_node, create_device_model, create_device_instance, get_node_status, list_node_status
+    from applications.common.k8s import create_node, create_device_model, get_node_status, \
+        list_node_status
     list_node_status()
     return ''
 
