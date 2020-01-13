@@ -8,7 +8,7 @@ manager = Manager(app)
 
 @manager.command
 def init():
-    from models.node import Node, NodeClass, NodesHasTag, NodesHasTask
+    from models.node import Node, ArchClass, NodesHasTag, NodesHasTask
     from models.service import Service, ServicesHasTag
     from models.tag import Tag
     from models.task import Task
