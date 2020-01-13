@@ -7,15 +7,15 @@ IMAGE           = edge-server
 
 
 build:
-    docker build --network host --rm -t "$(REGISTRY)/$(IMAGE):$(TAG)" -f Dockerfile .
+	docker build --network host --rm -t "$(REGISTRY)/$(IMAGE):$(TAG)" -f Dockerfile .
 
 push: build
-    docker push "$(REGISTRY)/$(IMAGE):$(TAG)"
+	docker push "$(REGISTRY)/$(IMAGE):$(TAG)"
 
 deploy: push
-    # replace image tag on deployment.yaml
-    sed -i 's/{IMAGE_TAG_for_change}/$(TAG)/g' deploy/server-deployment.yaml
-    # apply change
-    kubectl apply -f deploy/ --namespace "$(DEPLOY_NAMESPACE)"
-    # restore deployment.yaml
-    sed -i 's/$(TAG)/{IMAGE_TAG_for_change}/g' deploy/server-deployment.yaml
+	# replace image tag on deployment.yaml
+	sed -i 's/{IMAGE_TAG_for_change}/$(TAG)/g' deploy/server-deployment.yaml
+	# apply change
+	kubectl apply -f deploy/ --namespace "$(DEPLOY_NAMESPACE)"
+	# restore deployment.yaml
+	sed -i 's/$(TAG)/{IMAGE_TAG_for_change}/g' deploy/server-deployment.yaml
