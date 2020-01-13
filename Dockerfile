@@ -48,6 +48,7 @@ WORKDIR /app
 COPY applications ./applications
 COPY models ./models
 COPY *.py ./
+COPY edge.sh ./edge.sh
 # COPY config.yaml .
 
 CMD [ "python", "app.py"]
