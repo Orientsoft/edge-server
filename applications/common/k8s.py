@@ -187,21 +187,12 @@ def update_node_online_status():
     from models.node import Node
     from app import db
     try:
-        node_list = Node.query.all()
-        node_status_list_before = {}
-        for x in node_list:
-            node_status_list_before[x.name] = x.online
         node_status_list = list_node_status()
         if not node_status_list:
             return False
-        for key, value in node_status_list.items():
-            # 更新k8s中还存在的node节点online状态
-            if node_status_list_before.get(key) and node_status_list_before[key] != value:
-                Node.query.filter_by(name=key).update({'online': value})
-        for key in node_status_list_before.keys():
-            if not node_status_list.get(key):
-                # 数据库中能查到数据，但k8s中已不存在，暂时将数据库中online状态变更为False
-                Node.query.filter_by(name=key).update({'online': False})
+        node_list = Node.query.all()
+        for n in node_list:
+            n.online = node_status_list.get(n.name, False)
         db.session.commit()
         return True
     except Exception as e:
