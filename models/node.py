@@ -35,7 +35,7 @@ class NodesHasTag(db.Model):
     __tablename__ = 'nodes_has_tag'
 
     nodes_id = db.Column(db.ForeignKey('nodes.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
-    tag_id = db.Column(db.ForeignKey('tag.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
+    tag_id = db.Column(db.ForeignKey('tag.id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, index=True)
     id = db.Column(db.INTEGER, primary_key=True)
 
     nodes = db.relationship('Node')
@@ -65,8 +65,8 @@ class NodesHasTag(db.Model):
 class NodesHasTask(db.Model):
     __tablename__ = 'nodes_has_task'
 
-    nodes_id = db.Column(db.ForeignKey('nodes.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
-    task_id = db.Column(db.ForeignKey('task.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
+    nodes_id = db.Column(db.ForeignKey('nodes.id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, index=True)
+    task_id = db.Column(db.ForeignKey('task.id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, index=True)
     id = db.Column(db.INTEGER, primary_key=True)
     device_name = db.Column(db.String(45))
 

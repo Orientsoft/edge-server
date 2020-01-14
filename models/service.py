@@ -22,7 +22,7 @@ class ServicesHasTag(db.Model):
 
     services_id = db.Column(db.ForeignKey('services.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False,
                             index=True)
-    tag_id = db.Column(db.ForeignKey('tag.id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
+    tag_id = db.Column(db.ForeignKey('tag.id', ondelete='RESTRICT', onupdate='RESTRICT'), nullable=False, index=True)
     id = db.Column(db.INTEGER, primary_key=True)
 
     services = db.relationship('Service')

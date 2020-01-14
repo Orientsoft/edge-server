@@ -7,7 +7,7 @@ from applications.service_manage import ServiceAction, ServiceNodeAction
 from applications.task_manage import TaskAction, TaskDetailAction
 from applications.nodeArch import ArchAction
 from applications.nodes import NodeAction, NodeDeployLink
-from applications.node_tag import NodeTagAction, TagNodeAction
+from applications.node_tag import NodeTagAction
 
 from kubernetes import config, client
 
@@ -25,7 +25,6 @@ custom_instance = client.CustomObjectsApi()
 k8s_apps_v1 = client.AppsV1Api()
 
 api.add_resource(TagAction, '/tag')
-api.add_resource(TagNodeAction, '/tag/node')
 api.add_resource(ServiceAction, '/service')
 api.add_resource(ServiceNodeAction, '/service/node/<service_id>')
 api.add_resource(TaskAction, '/task')
