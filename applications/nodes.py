@@ -11,43 +11,49 @@ class NodeAction(Resource):
         from applications.common.k8s import create_node
         import time
         import hashlib
-        name = request.json.get('name')
-        parallel = request.json.get('parallel', 1)
-        arch_class_id = request.json.get('arch_class_id')
-        count = request.json.get('count', 1)
-        tag = request.json.get('tag_id')
         try:
-            # 校验tag是否为体系tag
-            tag_model = Tag.query.get(tag)
-            if tag_model.type != '体系':
-                return '必须选择体系标签', 400
-            result = Node.query.filter_by(name=name).first()
-            if result:
-                return '节点名重复', 400
-            # 校验name唯一性，并且只能为小写英文
-            for x in name:
-                if ord(x) < 97 or ord(x) > 122:
-                    return '节点名只能为小写英文', 400
+            name = request.json.get('name')
+            parallel = request.json.get('parallel', 1)
+            arch_class_id = request.json.get('arch_class_id')
+            count = request.json.get('count', 1)
+            tag = request.json.get('tag_id')
+            try:
+                # 校验tag是否为体系tag
+                tag_model = Tag.query.get(tag)
+                if tag_model.type != '体系':
+                    return '必须选择体系标签', 400
+                result = Node.query.filter_by(name=name).first()
+                if result:
+                    return '节点名重复', 400
+                # 校验name唯一性，并且只能为小写英文
+                for x in name:
+                    if ord(x) < 97 or ord(x) > 122:
+                        return '节点名只能为小写英文', 400
+            except Exception as e:
+                print(e)
+                return '后台异常', 500
+            for x in range(count):
+                token_before = name + '-' + str(x) + str(time.time())
+                h = hashlib.md5()
+                h.update(token_before.encode('utf-8'))
+                token = h.hexdigest()
+                insert = Node(name=name + '-' + str(x), parallel=parallel, online=False, updatedAt=datetime.now(),
+                              createdAt=datetime.now(), arch_class_id=arch_class_id, token=token)
+                db.session.add(insert)
+                # 调用k8s起节点
+                create_status = create_node(name + '-' + str(x))
+                if not create_status:
+                    return '创建节点失败', 400
+                db.session.flush()
+                # 查出node_id后添加node_tag关系
+                insert = NodesHasTag(nodes_id=insert.id, tag_id=tag)
+                db.session.add(insert)
+            time.sleep(10)
+            db.session.commit()
         except Exception as e:
             print(e)
-            return '后台异常', 500
-        for x in range(count):
-            token_before = name + '-' + str(x) + str(time.time())
-            h = hashlib.md5()
-            h.update(token_before.encode('utf-8'))
-            token = h.hexdigest()
-            insert = Node(name=name + '-' + str(x), parallel=parallel, online=False, updatedAt=datetime.now(),
-                          createdAt=datetime.now(), arch_class_id=arch_class_id, token=token)
-            db.session.add(insert)
-            # 调用k8s起节点
-            create_status = create_node(name + '-' + str(x))
-            if not create_status:
-                return '创建节点失败', 400
-            db.session.flush()
-            # 查出node_id后添加node_tag关系
-            insert = NodesHasTag(nodes_id=insert.id, tag_id=tag)
-            db.session.add(insert)
-        db.session.commit()
+            db.session.rollback()
+            return 'ERROR', 500
         return 'success', 200
 
     def get(self):
@@ -94,25 +100,30 @@ class NodeAction(Resource):
         from models.node import Node
         from datetime import datetime
         from app import db
-        id = request.json.get('id')
-        # name = request.json.get('name')
-        parallel = request.json.get('parallel')
-        # online = request.json.get('online')
-        # node_class_id不给改
-        # nodeClass = request.json.get('nodeClassId')
-        if not id:
-            return '参数错误', 400
-        node_model = Node.query.get(id)
-        if not node_model:
-            return '无效的id', 400
-        # if name:
-        #     node_model.name = name
-        if parallel:
-            node_model.parallel = parallel
-        # if online:
-        #     node_model.online = online
-        node_model.updatedAt = datetime.now()
-        db.session.commit()
+        try:
+            id = request.json.get('id')
+            # name = request.json.get('name')
+            parallel = request.json.get('parallel')
+            # online = request.json.get('online')
+            # node_class_id不给改
+            # nodeClass = request.json.get('nodeClassId')
+            if not id:
+                return '参数错误', 400
+            node_model = Node.query.get(id)
+            if not node_model:
+                return '无效的id', 400
+            # if name:
+            #     node_model.name = name
+            if parallel:
+                node_model.parallel = parallel
+            # if online:
+            #     node_model.online = online
+            node_model.updatedAt = datetime.now()
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
         return 'success', 200
 
     # def delete(self):

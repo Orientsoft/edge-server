@@ -48,6 +48,7 @@ class TaskAction(Resource):
                     db.session.rollback()
                     return '创建失败', 400
             db.session.commit()
+            return 'success', 200
         except:
             db.session.rollback()
             return '创建失败', 400
@@ -85,57 +86,66 @@ class TaskAction(Resource):
         from models.node import NodesHasTag, NodesHasTask
         from applications.common.k8s import CreateDevice, delete_device
         from app import db
-        taskid = request.json.get('id')
-        # 任务创建后，不可变更服务，可追加节点
-        node_ids = request.json.get('node_ids', None)
-        task = Task.query.get(taskid)
-        if not task:
-            return '任务不存在', 400
-        if node_ids:
-            nodes, node_result = NodesHasTag.available_node(node_ids, task.services_id)
-            if not nodes:
-                return '请选择可用的节点', 400
-            old_nodes = NodesHasTask.get_node_ids(taskid)
-            need_delete = list(set(old_nodes) - set(nodes))
-            need_add = list(set(nodes) - set(old_nodes))
-
-            c = CreateDevice(task.services.devicemodel)
-            # 新增节点
-            for n in need_add:
-                # 新增device
-                status, device_name = c.deploy(node_result[str(n)])
-                if status:
-                    nht = NodesHasTask()
-                    nht.task_id = task.id
-                    nht.nodes_id = n
-                    nht.device_name = device_name
-                    db.session.add(nht)
-
-            # 删除节点
-            temp = NodesHasTask.query.filter(NodesHasTask.task_id == task.id,
-                                             NodesHasTask.nodes_id.in_(need_delete)).all()
-            for t in temp:
-                if delete_device(t.device_name):
-                    db.session.delete(t)
-
-            db.session.commit()
+        try:
+            taskid = request.json.get('id')
+            # 任务创建后，不可变更服务，可追加节点
+            node_ids = request.json.get('node_ids', None)
+            task = Task.query.get(taskid)
+            if not task:
+                return '任务不存在', 400
+            if node_ids:
+                nodes, node_result = NodesHasTag.available_node(node_ids, task.services_id)
+                if not nodes:
+                    return '请选择可用的节点', 400
+                old_nodes = NodesHasTask.get_node_ids(taskid)
+                need_delete = list(set(old_nodes) - set(nodes))
+                need_add = list(set(nodes) - set(old_nodes))
+                c = CreateDevice(task.services.devicemodel)
+                # 新增节点
+                for n in need_add:
+                    # 新增device
+                    status, device_name = c.deploy(node_result[str(n)])
+                    if status:
+                        nht = NodesHasTask()
+                        nht.task_id = task.id
+                        nht.nodes_id = n
+                        nht.device_name = device_name
+                        db.session.add(nht)
+                # 删除节点
+                temp = NodesHasTask.query.filter(NodesHasTask.task_id == task.id,
+                                                 NodesHasTask.nodes_id.in_(need_delete)).all()
+                for t in temp:
+                    if delete_device(t.device_name):
+                        db.session.delete(t)
+                db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
+        return 'success', 200
 
     def delete(self):
         from models.task import Task
         from models.node import NodesHasTask
         from applications.common.k8s import delete_device
         from app import db
-        id = request.json.get('id')
-        t = Task.query.get(id)
-        if t:
-            if t.running:
-                return '此状态不允许删除', 400
-            temp = NodesHasTask.query.filter(NodesHasTask.task_id == t.id).all()
-            for d in temp:
-                if delete_device(d.device_name):
-                    db.session.delete(d)
-            db.session.delete(t)
-            db.session.commit()
+        try:
+            id = request.json.get('id')
+            t = Task.query.get(id)
+            if t:
+                if t.running:
+                    return '此状态不允许删除', 400
+                temp = NodesHasTask.query.filter(NodesHasTask.task_id == t.id).all()
+                for d in temp:
+                    if delete_device(d.device_name):
+                        db.session.delete(d)
+                db.session.delete(t)
+                db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
+        return 'success', 200
 
 
 # 查询某一个任务的部署节点
@@ -175,23 +185,29 @@ class TaskDetailAction(Resource):
         from models.node import NodesHasTask
         from applications.common.k8s import CreateDeploy,delete_deploy
         from app import db
-        task = Task.query.get(task_id)
-        if not task:
-            return '任务不存在', 400
-        operator = request.json.get('operator')  # start / stop
-        alldevice = NodesHasTask.query.filter_by(task_id=task_id).all()
-        if operator == 'start':
-            task.running = True
-            kubernetes = json.loads(task.services.kubernetes)
-            c = CreateDeploy(kubernetes, task.services.image)
-            for a in alldevice:
-                if not c.apply(a.device_name,a.nodes.name):
-                    return '启动失败',400
-        elif operator == 'stop':
-            task.running = False
-            for a in alldevice:
-                if not delete_deploy(a.device_name):
-                    return '停止失败',400
-            # TODO 删除deployment
-        db.session.commit()
+        try:
+            task = Task.query.get(task_id)
+            if not task:
+                return '任务不存在', 400
+            operator = request.json.get('operator')  # start / stop
+            alldevice = NodesHasTask.query.filter_by(task_id=task_id).all()
+            if operator == 'start':
+                task.running = True
+                kubernetes = json.loads(task.services.kubernetes)
+                c = CreateDeploy(kubernetes, task.services.image)
+                for a in alldevice:
+                    if not c.apply(a.device_name,a.nodes.name):
+                        return '启动失败',400
+            elif operator == 'stop':
+                task.running = False
+                for a in alldevice:
+                    if not delete_deploy(a.device_name):
+                        return '停止失败',400
+                # TODO 删除deployment
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
+        return 'success', 200
 

@@ -9,46 +9,52 @@ class NodeTagAction(Resource):
         from app import db
         from models.node import NodesHasTag
         from models.tag import Tag
-        node = request.json.get('node')
-        # tag传入是个数组
-        tag = request.json.get('tag')
-        # 筛选出体系tag列表
-        system_tags = Tag.filter_tags(tag, '体系')
-        node_tag_list = NodesHasTag.query.filter_by(nodes_id=node)
-        # 校验tag有效性, 一个node最多只能有一个体系tag，业务tag可以有n个
-        if len(system_tags) > 1:
-            return '体系标签只允许有一个', 400
-        if len(system_tags) == 1:
-            # node为搜索条件，查询node所属有无体系tag
+        try:
+            node = request.json.get('node')
+            # tag传入是个数组
+            tag = request.json.get('tag')
+            # 筛选出体系tag列表
+            system_tags = Tag.filter_tags(tag, '体系')
+            node_tag_list = NodesHasTag.query.filter_by(nodes_id=node)
+            # 校验tag有效性, 一个node最多只能有一个体系tag，业务tag可以有n个
+            if len(system_tags) > 1:
+                return '体系标签只允许有一个', 400
+            if len(system_tags) == 1:
+                # node为搜索条件，查询node所属有无体系tag
+                for x in node_tag_list:
+                    if x.tag.type == '体系' and x.tag_id != system_tags[0]:
+                        return '不可再添加体系标签', 400
+            # 做差集
+            tag_history = []
             for x in node_tag_list:
-                if x.tag.type == '体系' and x.tag_id != system_tags[0]:
-                    return '不可再添加体系标签', 400
-        # 做差集
-        tag_history = []
-        for x in node_tag_list:
-            tag_history.append(x.tag_id)
-        add_list = list(set(tag) - set(tag_history))
-        delete_list = list(set(tag_history) - set(tag))
-        # 增添部分
-        for x in add_list:
-            insert = NodesHasTag(nodes_id=node, tag_id=x)
-            db.session.add(insert)
-        # 删除部分
-        delete = node_tag_list.filter(NodesHasTag.tag_id.in_(delete_list))
-        for x in delete:
-            db.session.delete(x)
-        db.session.commit()
+                tag_history.append(x.tag_id)
+            add_list = list(set(tag) - set(tag_history))
+            delete_list = list(set(tag_history) - set(tag))
+            # 增添部分
+            for x in add_list:
+                insert = NodesHasTag(nodes_id=node, tag_id=x)
+                db.session.add(insert)
+            # 删除部分
+            delete = node_tag_list.filter(NodesHasTag.tag_id.in_(delete_list))
+            for x in delete:
+                db.session.delete(x)
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
         return 'success', 200
 
     def get(self):
         # 根据tag查询node节点
-        # TODO 只传入tag_id不传入node_id
+        # 只传入tag_id不传入node_id
         from models.node import NodesHasTag, Node
         # 参数均为列表形式，传入id
         tag = [int(x) for x in request.args.get('tag').split(',')] if request.args.get('tag') else None
         # 若同时存在node和tag的筛选条件，则不能传多个条件
         # if node and tag and (len(node) > 1 and len(tag) > 1):
         #     return '违规操作', 400
+        # 若无tag传入时，可保证无错误产生
         node_tag_list = NodesHasTag.query
         data_return = []
         # 特殊情况已排除，直接遍历筛除即可

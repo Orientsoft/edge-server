@@ -7,11 +7,17 @@ class TagAction(Resource):
     def post(self):
         from models.tag import Tag
         from app import db
-        t = Tag()
-        t.name = request.json.get('name')
-        t.type = request.json.get('type')
-        db.session.add(t)
-        db.session.commit()
+        try:
+            t = Tag()
+            t.name = request.json.get('name')
+            t.type = request.json.get('type')
+            db.session.add(t)
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
+        return 'success', 200
 
     def get(self):
         from models.tag import Tag
@@ -35,24 +41,36 @@ class TagAction(Resource):
     def patch(self):
         from models.tag import Tag
         from app import db
-        id = request.json.get('id')
-        t = Tag.query.get(id)
-        if t:
-            name = request.json.get('name', None)
-            type = request.json.get('type', None)
-            if name:
-                t.name = name
-            if type:
-                t.type = type
-            db.session.commit()
-        else:
-            return '标签不存在', 400
+        try:
+            id = request.json.get('id')
+            t = Tag.query.get(id)
+            if t:
+                name = request.json.get('name', None)
+                type = request.json.get('type', None)
+                if name:
+                    t.name = name
+                if type:
+                    t.type = type
+                db.session.commit()
+            else:
+                return '标签不存在', 400
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
+        return 'success', 200
 
     def delete(self):
         from models.tag import Tag
         from app import db
-        id = request.json.get('id')
-        t = Tag.query.get(id)
-        if t:
-            db.session.delete(t)
-            db.session.commit()
+        try:
+            id = request.json.get('id')
+            t = Tag.query.get(id)
+            if t:
+                db.session.delete(t)
+                db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return 'ERROR', 500
+        return 'success', 200
