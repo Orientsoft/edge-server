@@ -22,9 +22,9 @@ class NodeAction(Resource):
                 tag_model = Tag.query.get(tag)
                 if tag_model.type != '体系':
                     return '必须选择体系标签', 400
-                # TODO 模糊匹配'xxx-'
-                result = Node.query.filter_by(name=name).first()
-                if result:
+                # 模糊匹配'xxx-'
+                count = Node.query.filter(Node.name.like(name+'-%')).count()
+                if count:
                     return '节点名重复', 400
                 # 校验name唯一性，并且只能为小写英文
                 for x in name:
@@ -64,9 +64,8 @@ class NodeAction(Resource):
         name = request.args.get('name')
         parallel = int(request.args.get('parallel')) if request.args.get('parallel') else None
         online = request.args.get('online')
-        # arch_class_id = request.args.get('arch_class_id')
-        page = request.args.get('page', 1)
-        pageSize = request.args.get('pageSize', 20)
+        page = int(request.args.get('page', 1))
+        pageSize = int(request.args.get('pageSize', 20))
         # 更新node的online状态
         update_node_online_status()
         node_list = Node.query
@@ -78,8 +77,6 @@ class NodeAction(Resource):
             node_list = node_list.filter_by(parallel=parallel)
         if online:
             node_list = node_list.filter_by(online=online)
-        # if arch_class_id:
-        #     node_list = node_list.filter_by(arch_class_id=arch_class_id)
         # 分页
         node_list = node_list.limit(pageSize).offset((page - 1) * pageSize)
         data_return = []
@@ -104,22 +101,14 @@ class NodeAction(Resource):
         from app import db
         try:
             id = request.json.get('id')
-            # name = request.json.get('name')
             parallel = request.json.get('parallel')
-            # online = request.json.get('online')
-            # node_class_id不给改
-            # nodeClass = request.json.get('nodeClassId')
             if not id:
                 return '参数错误', 400
             node_model = Node.query.get(id)
             if not node_model:
                 return '无效的id', 400
-            # if name:
-            #     node_model.name = name
             if parallel:
                 node_model.parallel = parallel
-            # if online:
-            #     node_model.online = online
             node_model.updatedAt = datetime.now()
             db.session.commit()
         except Exception as e:

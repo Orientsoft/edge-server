@@ -79,7 +79,8 @@ class TaskAction(Resource):
                 "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
                                                                                      datetime.datetime) else r.updatedAt,
                 "token": r.token,
-                "nodes":list(map(lambda x: str(x.id), r.nodes))
+                "nodes":list(map(lambda x: {'id': x.id, 'name': x.name, 'online': x.online, 'parallel': x.parallel,
+                                             'arch': x.arch_class.name}, r.nodes))
             })
         return returnObj
 
@@ -203,9 +204,9 @@ class TaskDetailAction(Resource):
             elif operator == 'stop':
                 task.running = False
                 for a in alldevice:
+                    # 删除deployment
                     if not delete_deploy(a.device_name):
                         return '停止失败',400
-                # TODO 删除deployment
             db.session.commit()
         except Exception as e:
             print(e)

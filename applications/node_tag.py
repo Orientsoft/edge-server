@@ -16,19 +16,12 @@ class NodeTagAction(Resource):
             # 筛选出业务tag列表
             tag = Tag.filter_tags(tag, '业务')
             # 查出node所有的业务tag
-            node_tag_list = NodesHasTag.query.filter(NodesHasTag.nodes_id == node, NodesHasTag.tag.type == '业务')
-            # # 校验tag有效性, 一个node最多只能有一个体系tag，业务tag可以有n个
-            # if len(system_tags) != 1:
-            #     return '体系标签不可更改', 400
-            # else:
-            #     # node为搜索条件，查询node所属有无体系tag
-            #     for x in node_tag_list:
-            #         if x.tag.type == '体系' and x.tag_id != system_tags[0]:
-            #             return '不可再添加体系标签', 400
-            # 业务tag做差集
+            # 历史tag
             n = Node.query.get(node)
-            # TODO
-            tag_history = [x.id for x in n.tags]
+            tag_history = []
+            for x in n.tags:
+                if x.type == '业务':
+                    tag_history.append(str(x.id))
             add_list = list(set(tag) - set(tag_history))
             delete_list = list(set(tag_history) - set(tag))
             # 增添部分
@@ -36,7 +29,7 @@ class NodeTagAction(Resource):
                 insert = NodesHasTag(nodes_id=node, tag_id=x)
                 db.session.add(insert)
             # 删除部分
-            delete = node_tag_list.filter(NodesHasTag.tag_id.in_(delete_list))
+            delete = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(delete_list))
             for x in delete:
                 db.session.delete(x)
             db.session.commit()

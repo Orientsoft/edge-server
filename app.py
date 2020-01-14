@@ -7,6 +7,7 @@ from applications.service_manage import ServiceAction, ServiceNodeAction
 from applications.task_manage import TaskAction, TaskDetailAction
 from applications.nodeArch import ArchAction
 from applications.nodes import NodeAction, NodeDeployLink
+
 from applications.node_tag import NodeTagAction
 
 from kubernetes import config, client
