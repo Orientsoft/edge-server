@@ -42,7 +42,7 @@ class ServiceAction(Resource):
         return 'success', 200
 
     def get(self):
-        from models.service import Service, ServicesHasTag
+        from models.service import Service
         import json
         resultObj = Service.query.all()
         returnObj = []

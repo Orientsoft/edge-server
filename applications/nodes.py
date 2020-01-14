@@ -99,7 +99,8 @@ class NodeAction(Resource):
         return jsonify(data_return)
 
     def patch(self):
-        from models.node import Node
+        from models.node import Node, NodesHasTag
+        from models.tag import Tag
         from datetime import datetime
         from app import db
         try:
@@ -113,6 +114,27 @@ class NodeAction(Resource):
             if parallel:
                 node_model.parallel = parallel
             node_model.updatedAt = datetime.now()
+            # tag传入是个数组
+            tag = request.json.get('tag')
+            # 筛选出业务tag列表
+            tag = Tag.filter_tags(tag, '业务')
+            # 查出node所有的业务tag
+            # 历史tag
+            n = Node.query.get(id)
+            tag_history = []
+            for x in n.tags:
+                if x.type == '业务':
+                    tag_history.append(str(x.id))
+            add_list = list(set(tag) - set(tag_history))
+            delete_list = list(set(tag_history) - set(tag))
+            # 增添部分
+            for x in add_list:
+                insert = NodesHasTag(nodes_id=id, tag_id=x)
+                db.session.add(insert)
+            # 删除部分
+            delete = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(delete_list))
+            for x in delete:
+                db.session.delete(x)
             db.session.commit()
         except Exception as e:
             print(e)
