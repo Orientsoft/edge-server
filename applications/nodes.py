@@ -1,8 +1,10 @@
 from flask import request, jsonify, make_response
 from flask_restful import Resource
+# from ext import role_check
 
 
 class NodeAction(Resource):
+    # @role_check
     def post(self):
         from app import db
         from datetime import datetime
@@ -23,7 +25,7 @@ class NodeAction(Resource):
                 if tag_model.type != '体系':
                     return '必须选择体系标签', 400
                 # 模糊匹配'xxx-'
-                count = Node.query.filter(Node.name.like(name+'-%')).count()
+                count = Node.query.filter(Node.name.like(name + '-%')).count()
                 if count:
                     return '节点名重复', 400
                 # 校验name唯一性，并且只能为小写英文
@@ -57,6 +59,7 @@ class NodeAction(Resource):
             return 'ERROR', 500
         return 'success', 200
 
+    # @role_check
     def get(self):
         from models.node import Node
         from applications.common.k8s import update_node_online_status

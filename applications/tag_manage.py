@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import request
 from flask_restful import Resource
-from ext import role_check
+# from ext import role_check
 import json
 
 
@@ -65,7 +65,7 @@ class TagAction(Resource):
             return 'ERROR', 500
         return 'success', 200
 
-    @role_check
+    # @role_check
     def delete(self):
         from models.tag import Tag
         from app import db

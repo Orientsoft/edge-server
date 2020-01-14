@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask_restful import Resource
-from ext import role_check
+# from ext import role_check
 
 
 class ArchAction(Resource):
@@ -77,7 +77,7 @@ class ArchAction(Resource):
             return 'ERROR', 500
         return 'success', 200
 
-    @role_check
+    # @role_check
     def delete(self):
         from models.node import ArchClass
         from app import db
