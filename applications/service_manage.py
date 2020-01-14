@@ -115,6 +115,7 @@ class ServiceNodeAction(Resource):
         from models.node import NodesHasTag
         result = []
         tagids = ServicesHasTag.get_tag_ids(service_id)[str(service_id)]  # ['1','2']
+        # todo left join
         dataObj = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(tagids)).all()
         for d in dataObj:
             result.append({

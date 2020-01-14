@@ -76,8 +76,7 @@ class TaskAction(Resource):
                                                                                      datetime.datetime) else r.createdAt,
                 "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
                                                                                      datetime.datetime) else r.updatedAt,
-                "token": r.token,
-                "nodeids":NodesHasTask.get_node_ids(str(r.id))
+                "token": r.token
             })
         return returnObj
 
@@ -145,10 +144,8 @@ class TaskDetailAction(Resource):
     def get(self, task_id):
         returnObj = {}
         returnObj['nodes'] = []
-        returnObj['allNodes'] = []
         from models.task import Task
-        from models.node import NodesHasTask, NodesHasTag
-        from models.service import ServicesHasTag
+        from models.node import NodesHasTask
         task = Task.query.get(task_id)
         if not task:
             return '任务不存在', 400
@@ -170,6 +167,7 @@ class TaskDetailAction(Resource):
         returnObj['task_token'] = task.token
         # returnObj['service'] = {"name": task.services.name, "description": task.services.description,
         #                         "image": task.services.image}
+        returnObj["allNodes"]=NodesHasTask.get_node_ids(task_id)
         return returnObj
 
     def post(self, task_id):
