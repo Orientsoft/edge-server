@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask import request
 from flask_restful import Resource
+from ext import role_check
 import datetime
 import json
 
@@ -124,6 +125,7 @@ class TaskAction(Resource):
             return 'ERROR', 500
         return 'success', 200
 
+    @role_check
     def delete(self):
         from models.task import Task
         from models.node import NodesHasTask
