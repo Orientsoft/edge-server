@@ -25,8 +25,8 @@ class NodeAction(Resource):
                 if tag_model.type != '体系':
                     return '必须选择体系标签', 400
                 # 模糊匹配'xxx-'
-                count = Node.query.filter(Node.name.like(name + '-%')).count()
-                if count:
+                oldcount = Node.query.filter(Node.name.like(name + '-%')).count()
+                if oldcount:
                     return '节点名重复', 400
                 # 校验name唯一性，并且只能为小写英文
                 for x in name:
