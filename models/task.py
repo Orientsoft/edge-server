@@ -14,3 +14,4 @@ class Task(db.Model):
     token = db.Column(db.String(200))
 
     services = db.relationship('Service')
+    nodes = db.relationship('Node', secondary='nodes_has_task')

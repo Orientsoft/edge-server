@@ -78,7 +78,8 @@ class TaskAction(Resource):
                                                                                      datetime.datetime) else r.createdAt,
                 "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
                                                                                      datetime.datetime) else r.updatedAt,
-                "token": r.token
+                "token": r.token,
+                "nodes":list(map(lambda x: str(x.id), r.nodes))
             })
         return returnObj
 
@@ -98,7 +99,7 @@ class TaskAction(Resource):
                 nodes, node_result = NodesHasTag.available_node(node_ids, task.services_id)
                 if not nodes:
                     return '请选择可用的节点', 400
-                old_nodes = NodesHasTask.get_node_ids(taskid)
+                old_nodes = list(map(lambda x: str(x.id), task.nodes))
                 need_delete = list(set(old_nodes) - set(nodes))
                 need_add = list(set(nodes) - set(old_nodes))
                 c = CreateDevice(task.services.devicemodel)
@@ -179,7 +180,6 @@ class TaskDetailAction(Resource):
         returnObj['task_token'] = task.token
         # returnObj['service'] = {"name": task.services.name, "description": task.services.description,
         #                         "image": task.services.image}
-        returnObj["allNodes"]=NodesHasTask.get_node_ids(task_id)
         return returnObj
 
     def post(self, task_id):

@@ -27,6 +27,9 @@ class Node(db.Model):
 
     arch_class = db.relationship('ArchClass')
 
+    tags = db.relationship('Tag', secondary='nodes_has_tag')
+    tasks = db.relationship('Task', secondary='nodes_has_task')
+
 
 class NodesHasTag(db.Model):
     __tablename__ = 'nodes_has_tag'
@@ -69,15 +72,3 @@ class NodesHasTask(db.Model):
 
     nodes = db.relationship('Node')
     task = db.relationship('Task')
-
-    @staticmethod
-    def get_node_ids(task_id):
-        result = []
-        try:
-            dataObj = NodesHasTask.query.filter_by(task_id=task_id).all()
-            for d in dataObj:
-                result.append(str(d.nodes_id))
-        except:
-            pass
-        finally:
-            return result

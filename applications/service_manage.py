@@ -45,8 +45,6 @@ class ServiceAction(Resource):
     def get(self):
         from models.service import Service, ServicesHasTag
         import json
-        # service 已有的tag
-        service_has_tag = ServicesHasTag.get_tag_detail()
         resultObj = Service.query.all()
         returnObj = []
         for r in resultObj:
@@ -59,7 +57,7 @@ class ServiceAction(Resource):
                                                                                      datetime.datetime) else r.createdAt,
                 "updateAt": r.updateAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updateAt,
                                                                                    datetime.datetime) else r.updateAt,
-                "tags": service_has_tag[str(r.id)],
+                "tags": list(map(lambda x: {'id': x.id, 'name': x.name}, r.tags)),
                 "kubernetes": json.loads(r.kubernetes),
                 "devicemodel": r.devicemodel
             })
@@ -79,12 +77,12 @@ class ServiceAction(Resource):
                 tagids = request.json.get('tagids', None)
                 if tagids:
                     # tag必须是体系类tag。
-                    tags = Tag.filter_tags(tagids, '体系')
-                    if not tags:
+                    tagids = Tag.filter_tags(tagids, '体系')
+                    if not tagids:
                         return '标签不能为空', 400
-                    old_tags = ServicesHasTag.get_tag_ids(id)[id]
-                    need_delete = list(set(old_tags) - set(tags))
-                    need_add = list(set(tags) - set(old_tags))
+                    old_tags = list(map(lambda x: str(x.id), s.tags))
+                    need_delete = list(set(old_tags) - set(tagids))
+                    need_add = list(set(tagids) - set(old_tags))
                     # 新增标签
                     for n in need_add:
                         sht = ServicesHasTag()
@@ -131,10 +129,13 @@ class ServiceAction(Resource):
 
 class ServiceNodeAction(Resource):
     def get(self, service_id):
-        from models.service import ServicesHasTag
+        from models.service import ServicesHasTag, Service
         from models.node import NodesHasTag
         result = []
-        tagids = ServicesHasTag.get_tag_ids(service_id)[str(service_id)]  # ['1','2']
+        s = Service.query.get(service_id)
+        if not s:
+            return '服务不存在', 400
+        tagids = list(map(lambda x: str(x.id), s.tags))  # ['1','2']
         # todo left join
         dataObj = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(tagids)).all()
         for d in dataObj:
