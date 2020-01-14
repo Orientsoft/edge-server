@@ -3,6 +3,7 @@ from flask import request
 from flask_restful import Resource
 from ext import role_check
 import datetime
+import json
 
 
 class ServiceAction(Resource):
@@ -10,7 +11,6 @@ class ServiceAction(Resource):
         from models.service import Service, ServicesHasTag
         from models.tag import Tag
         from app import db, app
-        import json
         try:
             s = Service()
             # tagids = ['1','2','3']
@@ -23,7 +23,6 @@ class ServiceAction(Resource):
             s.description = request.json.get('description')
             s.image = request.json.get('image')
             kubernetes = request.json.get('kubernetes')
-            # 校验数据库中，储存k8s的容器名唯一
             s.kubernetes = json.dumps(kubernetes)
             s.devicemodel = app.config['DEVICEMODEL']
             s.createdAt = datetime.datetime.now()
@@ -64,42 +63,25 @@ class ServiceAction(Resource):
         return returnObj
 
     def patch(self):
-        from models.service import Service, ServicesHasTag
-        from models.tag import Tag
+        from models.service import Service
         from app import db
         try:
             id = request.json.get('id')
             s = Service.query.get(id)
+            # import 不可变更tagid
             if s:
                 name = request.json.get('name', None)
                 description = request.json.get('description', None)
                 image = request.json.get('image', None)
-                tagids = request.json.get('tagids', None)
-                if tagids:
-                    # tag必须是体系类tag。
-                    tagids = Tag.filter_tags(tagids, '体系')
-                    if not tagids:
-                        return '标签不能为空', 400
-                    old_tags = list(map(lambda x: str(x.id), s.tags))
-                    need_delete = list(set(old_tags) - set(tagids))
-                    need_add = list(set(tagids) - set(old_tags))
-                    # 新增标签
-                    for n in need_add:
-                        sht = ServicesHasTag()
-                        sht.services_id = id
-                        sht.tag_id = n
-                        db.session.add(sht)
-                    # 删除标签
-                    temp = ServicesHasTag.query.filter(ServicesHasTag.services_id == id,
-                                                       ServicesHasTag.tag_id.in_(need_delete)).all()
-                    for t in temp:
-                        db.session.delete(t)
+                kubernetes = request.json.get('kubernetes', None)
                 if name:
                     s.name = name
                 if description:
                     s.description = description
                 if image:
                     s.image = image
+                if kubernetes:
+                    s.kubernetes = json.dumps(image)
                 s.updateAt = datetime.datetime.now()
                 db.session.commit()
             else:
@@ -123,29 +105,35 @@ class ServiceAction(Resource):
         except Exception as e:
             print(e)
             db.session.rollback()
-            return 'ERROR', 500
+            return '已有任务使用该服务，无法删除', 400
         return 'success', 200
 
 
 class ServiceNodeAction(Resource):
     def get(self, service_id):
         from models.service import ServicesHasTag, Service
-        from models.node import NodesHasTag
+        from models.node import NodesHasTag, Node
         result = []
         s = Service.query.get(service_id)
         if not s:
             return '服务不存在', 400
+        # 服务支持的tag
         tagids = list(map(lambda x: str(x.id), s.tags))  # ['1','2']
-        # todo left join
+        # tag对应的node
+        nodeids = []
         dataObj = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(tagids)).all()
         for d in dataObj:
+            nodeids.append(d.nodes_id)
+        nodeObj = Node.query.filter(Node.id.in_(nodeids)).all()
+        for d in nodeObj:
             result.append({
-                "id": d.nodes_id,
-                "name": d.nodes.name,
-                "arch": d.nodes.arch_class.name,
-                "parallel": d.nodes.parallel,
-                "online": d.nodes.online,
-                "createdAt": d.nodes.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.nodes.createdAt,
-                                                                                           datetime.datetime) else d.nodes.createdAt,
+                "id": d.id,
+                "name": d.name,
+                "arch": d.arch_class.name,
+                "parallel": d.parallel,
+                "online": d.online,
+                "tags":list(map(lambda y: {'id': y.id, 'name': y.name}, d.tags)),
+                "createdAt": d.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.createdAt,
+                                                                                           datetime.datetime) else d.createdAt,
             })
         return result
