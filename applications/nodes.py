@@ -22,6 +22,7 @@ class NodeAction(Resource):
                 tag_model = Tag.query.get(tag)
                 if tag_model.type != '体系':
                     return '必须选择体系标签', 400
+                # TODO 模糊匹配'xxx-'
                 result = Node.query.filter_by(name=name).first()
                 if result:
                     return '节点名重复', 400
@@ -43,12 +44,12 @@ class NodeAction(Resource):
                 # 调用k8s起节点
                 create_status = create_node(name + '-' + str(x))
                 if not create_status:
+                    db.session.rollback()
                     return '创建节点失败', 400
                 db.session.flush()
                 # 查出node_id后添加node_tag关系
                 insert = NodesHasTag(nodes_id=insert.id, tag_id=tag)
                 db.session.add(insert)
-            time.sleep(10)
             db.session.commit()
         except Exception as e:
             print(e)
@@ -92,7 +93,8 @@ class NodeAction(Resource):
                 'arch_class_name': x.arch_class.name,
                 'updatedAt': x.updatedAt,
                 'createdAt': x.createdAt,
-                'url': '/deploy?token=%s' % x.token
+                'url': '/deploy?token=%s' % x.token,
+                "tags": list(map(lambda y: {'id': y.id, 'name': y.name}, x.tags))
             })
         return jsonify(data_return)
 

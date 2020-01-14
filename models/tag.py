@@ -9,6 +9,9 @@ class Tag(db.Model):
     name = db.Column(db.String(45))
     type = db.Column(db.Enum('业务', '体系'))
 
+    nodes = db.relationship('Node', secondary='nodes_has_tag')
+    services = db.relationship('Service', secondary='services_has_tag')
+
     @staticmethod
     def filter_tags(tagids, type):
         tags = []
