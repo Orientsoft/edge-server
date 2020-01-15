@@ -9,7 +9,6 @@ from applications.nodeArch import ArchAction
 from applications.nodes import NodeAction, NodeDeployLink
 from applications.user import UserAction
 
-from applications.node_tag import NodeTagAction
 
 from kubernetes import config, client
 
@@ -34,7 +33,6 @@ api.add_resource(TaskAction, '/task')
 api.add_resource(TaskDetailAction, '/task/<task_id>')
 api.add_resource(ArchAction, '/arch')
 api.add_resource(NodeAction, '/node')
-api.add_resource(NodeTagAction, '/node/tag')
 api.add_resource(NodeDeployLink, '/deploy')
 
 
