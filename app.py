@@ -9,13 +9,12 @@ from applications.nodeArch import ArchAction
 from applications.nodes import NodeAction, NodeDeployLink
 from applications.user import UserAction
 
-
 from kubernetes import config, client
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
-api = Api(app)
+api = Api(app,prefix='/api/v1')
 
 if app.config['IN_CLUSTER']:
     config.load_incluster_config()
@@ -36,11 +35,6 @@ api.add_resource(NodeAction, '/node')
 api.add_resource(NodeDeployLink, '/deploy')
 
 
-@app.route('/static/<path:filename>')
-def send_file(filename):
-    return send_from_directory(app.static_folder, filename)
-
-
 @app.route('/test/<name>', methods=['GET'])
 def test(name):
     from applications.common.k8s import create_node, create_device_model, get_node_status, \
@@ -57,8 +51,8 @@ def check_login():
         # 登出
         session.clear()
         return 'success', 200
-    elif request.method in ['DELETE', 'delete']:
-        return '权限不足', 400
+    # elif request.method in ['DELETE', 'delete']:
+    #     return '权限不足', 400
     elif not session.get('name'):
         return '请登录', 403
     else:
