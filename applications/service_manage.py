@@ -115,6 +115,8 @@ class ServiceNodeAction(Resource):
     def get(self, service_id):
         from models.service import ServicesHasTag, Service
         from models.node import NodesHasTag, Node
+        from applications.common.k8s import update_node_online_status
+        update_node_online_status()
         result = []
         s = Service.query.get(service_id)
         if not s:
@@ -126,7 +128,7 @@ class ServiceNodeAction(Resource):
         dataObj = NodesHasTag.query.filter(NodesHasTag.tag_id.in_(tagids)).all()
         for d in dataObj:
             nodeids.append(d.nodes_id)
-        nodeObj = Node.query.filter(Node.id.in_(nodeids)).all()
+        nodeObj = Node.query.filter(Node.id.in_(nodeids), Node.online == 1).all()
         for d in nodeObj:
             tags = {}
             buss_tags = []
@@ -141,9 +143,9 @@ class ServiceNodeAction(Resource):
                 "arch": d.arch_class.name,
                 "parallel": d.parallel,
                 "online": d.online,
-                "tags":tags,
-                "buss_tags":buss_tags,
+                "tags": tags,
+                "buss_tags": buss_tags,
                 "createdAt": d.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.createdAt,
-                                                                                           datetime.datetime) else d.createdAt,
+                                                                                     datetime.datetime) else d.createdAt,
             })
         return result

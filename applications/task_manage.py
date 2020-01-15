@@ -56,7 +56,8 @@ class TaskAction(Resource):
 
     def get(self):
         from models.task import Task
-        from models.node import NodesHasTask
+        from applications.common.k8s import update_node_online_status
+        update_node_online_status()
         running = request.args.get('running', None)
         services_id = request.args.get('service_id', None)
         dataObj = Task.query
@@ -93,9 +94,12 @@ class TaskAction(Resource):
             taskid = request.json.get('id')
             # 任务创建后，不可变更服务，可追加节点
             node_ids = request.json.get('node_ids', None)
+            name = request.json.get('name', None)
             task = Task.query.get(taskid)
             if not task:
                 return '任务不存在', 400
+            if task.running:
+                return '此状态不允许修改，请先停止任务', 400
             if node_ids:
                 nodes, node_result = NodesHasTag.available_node(node_ids, task.services_id)
                 if not nodes:
@@ -120,7 +124,9 @@ class TaskAction(Resource):
                 for t in temp:
                     if delete_device(t.device_name):
                         db.session.delete(t)
-                db.session.commit()
+            if name:
+                task.name = name
+            db.session.commit()
         except Exception as e:
             print(e)
             db.session.rollback()
