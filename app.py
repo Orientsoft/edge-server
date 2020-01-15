@@ -2,6 +2,7 @@
 from flask import Flask, send_from_directory, session, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
+from flask_cors import CORS
 from applications.tag_manage import TagAction
 from applications.service_manage import ServiceAction, ServiceNodeAction
 from applications.task_manage import TaskAction, TaskDetailAction
@@ -15,6 +16,7 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
 api = Api(app,prefix='/api/v1')
+CORS(app, supports_credentials=True)
 
 if app.config['IN_CLUSTER']:
     config.load_incluster_config()
