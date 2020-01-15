@@ -23,6 +23,7 @@ class ServiceAction(Resource):
             s.description = request.json.get('description')
             s.image = request.json.get('image')
             kubernetes = request.json.get('kubernetes')
+            # todo CHECK kubernetes
             s.kubernetes = json.dumps(kubernetes)
             s.devicemodel = app.config['DEVICEMODEL']
             s.createdAt = datetime.datetime.now()
@@ -80,6 +81,7 @@ class ServiceAction(Resource):
                     s.description = description
                 if image:
                     s.image = image
+                # todo CHECK kubernete
                 if kubernetes:
                     s.kubernetes = json.dumps(image)
                 s.updateAt = datetime.datetime.now()
@@ -126,13 +128,21 @@ class ServiceNodeAction(Resource):
             nodeids.append(d.nodes_id)
         nodeObj = Node.query.filter(Node.id.in_(nodeids)).all()
         for d in nodeObj:
+            tags = {}
+            buss_tags = []
+            for y in d.tags:
+                if y.type == '业务':
+                    buss_tags.append({'id': y.id, 'name': y.name})
+                elif y.type == '体系':
+                    tags = {'id': y.id, 'name': y.name}
             result.append({
                 "id": d.id,
                 "name": d.name,
                 "arch": d.arch_class.name,
                 "parallel": d.parallel,
                 "online": d.online,
-                "tags":list(map(lambda y: {'id': y.id, 'name': y.name}, d.tags)),
+                "tags":tags,
+                "buss_tags":buss_tags,
                 "createdAt": d.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.createdAt,
                                                                                            datetime.datetime) else d.createdAt,
             })

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from app import api_instance, custom_instance, k8s_apps_v1
+from app import api_instance, custom_instance, k8s_apps_v1, app
 import random, string
 
 num = string.ascii_letters + string.digits
@@ -137,7 +137,7 @@ class CreateDeploy:
                                      'volumeMounts': volumeMounts,
                                      'env': env,
                                      'securityContext': {'privileged': True}}],
-                               'imagePullSecrets': [{'name': 'regsecret'}],
+                               'imagePullSecrets': [{'name': app.config['IMAGE_PULL_SECRET']}],
                                'volumes': volumes
                                }}}}
         try:
