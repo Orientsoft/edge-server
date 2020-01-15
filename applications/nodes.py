@@ -1,5 +1,7 @@
 from flask import request, jsonify, make_response
 from flask_restful import Resource
+
+
 # from ext import role_check
 
 
@@ -159,10 +161,13 @@ class NodeAction(Resource):
 class NodeDeployLink(Resource):
     def get(self):
         from models.node import Node
+        from applications.common.k8s import get_node_status
         token = request.args.get('token')
         n = Node.query.filter_by(token=token).first()
         if not n:
             return 'node不存在', 400
+        if get_node_status(n.name):
+            return 'node已使用', 400
         with open('edge.sh') as f:
             download_content = f.read()
         resp = make_response(self.format_sh(download_content, n))
