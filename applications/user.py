@@ -11,4 +11,4 @@ class UserAction(Resource):
             return '登陆失败', 400
         else:
             session['name'] = name
-            return '登陆成功', 200
+            return {'username':name}, 200

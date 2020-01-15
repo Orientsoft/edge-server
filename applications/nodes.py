@@ -20,12 +20,16 @@ class NodeAction(Resource):
             parallel = request.json.get('parallel', 1)
             arch_class_id = request.json.get('arch_class_id')
             count = request.json.get('count', 1)
-            tag = request.json.get('tag_id')
+            tx_tag = request.json.get('tag_id')  # 单值
+            yw_tag = request.json.get('buss_tag_ids')  # 数组
             try:
+                if count > 10:
+                    return '单次添加节点上限10个', 400
                 # 校验tag是否为体系tag
-                tag_model = Tag.query.get(tag)
+                tag_model = Tag.query.get(tx_tag)
                 if tag_model.type != '体系':
                     return '必须选择体系标签', 400
+                yw_tag = Tag.filter_tags(yw_tag, '业务')
                 # 模糊匹配'xxx-'
                 oldcount = Node.query.filter(Node.name.like(name + '-%')).count()
                 if oldcount:
@@ -51,9 +55,13 @@ class NodeAction(Resource):
                     db.session.rollback()
                     return '创建节点失败', 400
                 db.session.flush()
-                # 查出node_id后添加node_tag关系
-                insert = NodesHasTag(nodes_id=insert.id, tag_id=tag)
-                db.session.add(insert)
+                # 体系tag  查出node_id后添加node_tag关系
+                tx = NodesHasTag(nodes_id=insert.id, tag_id=tx_tag)
+                db.session.add(tx)
+                # 业务tag
+                for yw in yw_tag:
+                    a = NodesHasTag(nodes_id=insert.id, tag_id=yw)
+                    db.session.add(a)
             db.session.commit()
         except Exception as e:
             print(e)
@@ -86,6 +94,13 @@ class NodeAction(Resource):
         node_list = node_list.limit(pageSize).offset((page - 1) * pageSize)
         data_return = []
         for x in node_list:
+            tags = {}
+            buss_tags =[]
+            for y in x.tags:
+                if y.type == '业务':
+                    buss_tags.append({'id': y.id, 'name': y.name})
+                elif y.type == '体系':
+                    tags = {'id': y.id, 'name': y.name}
             data_return.append({
                 'id': x.id,
                 'name': x.name,
@@ -96,7 +111,8 @@ class NodeAction(Resource):
                 'updatedAt': x.updatedAt,
                 'createdAt': x.createdAt,
                 'url': '/deploy?token=%s' % x.token,
-                "tags": list(map(lambda y: {'id': y.id, 'name': y.name}, x.tags))
+                "tags": tags,
+                "buss_tags":buss_tags
             })
         return jsonify(data_return)
 
