@@ -47,9 +47,9 @@ def test(name):
 
 @app.before_request
 def check_login():
-    if request.path == '/login' and request.method in ['POST', 'post', 'OPTIONS', 'options']:
+    if request.path == '/api/v1/login' and request.method in ['POST', 'post', 'OPTIONS', 'options']:
         pass
-    elif request.path == '/logout' and request.method in ['GET', 'get']:
+    elif request.path == '/api/v1/logout' and request.method in ['GET', 'get']:
         # 登出
         session.clear()
         return 'success', 200
