@@ -90,12 +90,14 @@ class NodeAction(Resource):
             node_list = node_list.filter_by(parallel=parallel)
         if online:
             node_list = node_list.filter_by(online=online)
+        # 总数
+        count = node_list.count()
         # 分页
         node_list = node_list.limit(pageSize).offset((page - 1) * pageSize)
         data_return = []
         for x in node_list:
             tags = {}
-            buss_tags =[]
+            buss_tags = []
             for y in x.tags:
                 if y.type == '业务':
                     buss_tags.append({'id': y.id, 'name': y.name})
@@ -112,9 +114,9 @@ class NodeAction(Resource):
                 'createdAt': x.createdAt,
                 'url': '/deploy?token=%s' % x.token,
                 "tags": tags,
-                "buss_tags":buss_tags
+                "buss_tags": buss_tags
             })
-        return jsonify(data_return)
+        return jsonify({'nodes': data_return, 'total': count})
 
     def patch(self):
         from models.node import Node, NodesHasTag
