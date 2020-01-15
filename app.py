@@ -47,7 +47,7 @@ def test(name):
 
 @app.before_request
 def check_login():
-    if request.path == '/login' and request.method in ['POST', 'post']:
+    if request.path == '/login' and request.method in ['POST', 'post', 'OPTIONS', 'options']:
         pass
     elif request.path == '/logout' and request.method in ['GET', 'get']:
         # 登出
