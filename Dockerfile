@@ -1,6 +1,6 @@
 FROM python:3.6-alpine as base
 FROM base as builder
-RUN apk add --no-cache gcc musl-dev g++ mysql-dev
+RUN apk add --no-cache gcc musl-dev g++ mysql-dev python-dateutil
 
 
 RUN mkdir /install
