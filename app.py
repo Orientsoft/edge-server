@@ -45,7 +45,7 @@ def test(name):
     return ''
 
 
-# @app.before_request
+@app.before_request
 def check_login():
     if request.path == '/api/v1/login' and request.method in ['POST', 'post', 'OPTIONS', 'options']:
         pass
