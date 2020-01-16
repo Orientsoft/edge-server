@@ -8,7 +8,7 @@ from applications.service_manage import ServiceAction, ServiceNodeAction
 from applications.task_manage import TaskAction, TaskDetailAction
 from applications.nodeArch import ArchAction
 from applications.nodes import NodeAction, NodeDeployLink
-from applications.user import UserAction
+from applications.user import UserAction, LogoutAction
 
 from kubernetes import config, client
 
@@ -27,6 +27,7 @@ custom_instance = client.CustomObjectsApi()
 k8s_apps_v1 = client.AppsV1Api()
 
 api.add_resource(UserAction, '/login')
+api.add_resource(LogoutAction, '/logout')
 api.add_resource(TagAction, '/tag')
 api.add_resource(ServiceAction, '/service')
 api.add_resource(ServiceNodeAction, '/service/node/<service_id>')
@@ -51,8 +52,7 @@ def check_login():
         pass
     elif request.path == '/api/v1/logout' and request.method in ['GET', 'get']:
         # 登出
-        session.clear()
-        return 'success', 200
+        pass
     # elif request.method in ['DELETE', 'delete']:
     #     return '权限不足', 400
     elif not session.get('name'):

@@ -11,4 +11,10 @@ class UserAction(Resource):
             return '登陆失败', 400
         else:
             session['name'] = name
-            return {'username':name}, 200
+            return {'username': name}, 200
+
+
+class LogoutAction(Resource):
+    def get(self):
+        session.clear()
+        return 'success', 200
