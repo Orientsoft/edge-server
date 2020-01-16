@@ -112,7 +112,7 @@ class NodeAction(Resource):
                 'arch_class_name': x.arch_class.name,
                 'updatedAt': x.updatedAt,
                 'createdAt': x.createdAt,
-                'url': '/deploy?token=%s' % x.token,
+                'url': '/api/v1/deploy?token=%s' % x.token,
                 "tags": tags,
                 "buss_tags": buss_tags
             })
