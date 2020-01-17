@@ -83,7 +83,7 @@ class ServiceAction(Resource):
                     s.image = image
                 # todo CHECK kubernete
                 if kubernetes:
-                    s.kubernetes = json.dumps(image)
+                    s.kubernetes = json.dumps(kubernetes)
                 s.updateAt = datetime.datetime.now()
                 db.session.commit()
             else:
