@@ -58,7 +58,7 @@ class ServiceAction(Resource):
                 "updateAt": r.updateAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updateAt,
                                                                                    datetime.datetime) else r.updateAt,
                 "tags": list(map(lambda x: {'id': x.id, 'name': x.name}, r.tags)),
-                "kubernetes": json.load(r.kubernetes),
+                "kubernetes": json.loads(r.kubernetes),
                 "devicemodel": r.devicemodel
             })
         return returnObj
