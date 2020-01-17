@@ -23,8 +23,9 @@ class ServiceAction(Resource):
             s.description = request.json.get('description')
             s.image = request.json.get('image')
             kubernetes = request.json.get('kubernetes')
-            # todo CHECK kubernetes
-            s.kubernetes = json.dumps(kubernetes) if type(kubernetes) == dict else kubernetes
+            if type(kubernetes) != dict:
+                return '配置请输入json格式'
+            s.kubernetes = json.dumps(kubernetes)
             s.devicemodel = app.config['DEVICEMODEL']
             s.createdAt = datetime.datetime.now()
             db.session.add(s)
@@ -75,13 +76,14 @@ class ServiceAction(Resource):
                 description = request.json.get('description', None)
                 image = request.json.get('image', None)
                 kubernetes = request.json.get('kubernetes', None)
+                if kubernetes and type(kubernetes) != dict:
+                    return '配置请输入json格式'
                 if name:
                     s.name = name
                 if description:
                     s.description = description
                 if image:
                     s.image = image
-                # todo CHECK kubernete
                 if kubernetes:
                     s.kubernetes = json.dumps(kubernetes)
                 s.updateAt = datetime.datetime.now()
