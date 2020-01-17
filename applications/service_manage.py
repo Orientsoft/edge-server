@@ -24,7 +24,7 @@ class ServiceAction(Resource):
             s.image = request.json.get('image')
             kubernetes = request.json.get('kubernetes')
             # todo CHECK kubernetes
-            s.kubernetes = json.dumps(kubernetes)
+            s.kubernetes = json.dumps(kubernetes) if type(kubernetes) == dict else kubernetes
             s.devicemodel = app.config['DEVICEMODEL']
             s.createdAt = datetime.datetime.now()
             db.session.add(s)
