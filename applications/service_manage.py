@@ -24,7 +24,7 @@ class ServiceAction(Resource):
             s.image = request.json.get('image')
             kubernetes = request.json.get('kubernetes')
             if type(kubernetes) != dict:
-                return '配置请输入json格式'
+                return '配置请输入json格式',400
             s.kubernetes = json.dumps(kubernetes)
             s.devicemodel = app.config['DEVICEMODEL']
             s.createdAt = datetime.datetime.now()
@@ -77,7 +77,7 @@ class ServiceAction(Resource):
                 image = request.json.get('image', None)
                 kubernetes = request.json.get('kubernetes', None)
                 if kubernetes and type(kubernetes) != dict:
-                    return '配置请输入json格式'
+                    return '配置请输入json格式',400
                 if name:
                     s.name = name
                 if description:
