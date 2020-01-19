@@ -48,9 +48,9 @@ def test(name):
 
 @app.before_request
 def check_login():
-    if request.path == '/api/v1/login' and request.method in ['POST', 'post', 'OPTIONS', 'options']:
+    if request.path in ['/api/v1/login','/api/v1/deploy'] and request.method in ['POST', 'GET', 'OPTIONS']:
         pass
-    elif request.path == '/api/v1/logout' and request.method in ['GET', 'get']:
+    elif request.path == '/api/v1/logout' and request.method in ['GET']:
         # 登出
         pass
     # elif request.method in ['DELETE', 'delete']:

@@ -198,13 +198,13 @@ class NodeDeployLink(Resource):
         from app import app
         from applications.common.s3 import presign_url
         package_name = n.arch_class.package.replace('package/', '').replace('.tar.gz', '')
-        line = line.replace('package_address', presign_url(n.arch_class.package))
-        line = line.replace('package_name', package_name)
-        line = line.replace('yaml_address', presign_url(n.arch_class.tpl))
-        line = line.replace('socket_config', app.config['WEBSOCKET_URL'])
-        line = line.replace('node_id_config', n.name)
-        line = line.replace('interface_config', n.arch_class.interface_name)
-        line = line.replace('image_config', n.arch_class.podsandbox_image)
-        line = line.replace('crt_address', presign_url(app.config['CERT_CRT']))
-        line = line.replace('key_address', presign_url(app.config['CERT_KEY']))
+        line = line.replace('address_for_replace', presign_url(n.arch_class.package))
+        line = line.replace('package_for_replace', package_name)
+        line = line.replace('yaml_for_replace', presign_url(n.arch_class.tpl))
+        line = line.replace('socket_for_replace', app.config['WEBSOCKET_URL'])
+        line = line.replace('node_id_for_replace', n.name)
+        line = line.replace('interface_for_replace', n.arch_class.interface_name)
+        line = line.replace('image_for_replace', n.arch_class.podsandbox_image)
+        line = line.replace('crt_for_replace', presign_url(app.config['CERT_CRT']))
+        line = line.replace('key_for_replace', presign_url(app.config['CERT_KEY']))
         return line
