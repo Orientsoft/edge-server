@@ -15,7 +15,7 @@ from kubernetes import config, client
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
-api = Api(app,prefix='/api/v1')
+api = Api(app, prefix='/api/v1')
 CORS(app, supports_credentials=True)
 
 if app.config['IN_CLUSTER']:
@@ -59,6 +59,13 @@ def check_login():
         return '请登录', 403
     else:
         pass
+
+
+@app.errorhandler(Exception)
+def roll_back_sql_error(error):
+    print(error)
+    db.session.rollback()
+    return '未知错误', 500
 
 
 if __name__ == '__main__':
