@@ -28,11 +28,11 @@ check_root(){
         fi
     fi
 }
-# 检查安装docker
+# install docker
 install_docker(){
     curl -sSL https://get.docker.com | sh
 }
-# 检查操作系统版本
+# check_os
 get_distribution() {
 	lsb_dist=""
 	# Every system that we officially support has /etc/os-release
@@ -42,7 +42,6 @@ get_distribution() {
 	# Returning an empty string here should be alright since the
 	# case statements don't act unless you provide an actual value
 	echo "$lsb_dist"
-	lsb_dist=$( get_distribution )
     lsb_dist="$(echo "$lsb_dist" | tr '[:upper:]' '[:lower:]')"
     case "$lsb_dist" in
         ubuntu|debian|raspbian)
@@ -58,8 +57,8 @@ get_distribution() {
 }
 
 export_env(){
-    $sh_c 'echo \"export DISPLAY=:0\" >> /etc/profile'
-    $sh_c 'echo \"xhost +\" >> /etc/profile'
+    $sh_c 'echo export DISPLAY=:0 >> /etc/profile'
+    $sh_c 'echo xhost + >> /etc/profile'
 }
 
 download_package(){
@@ -67,7 +66,7 @@ download_package(){
     tar -xvf $package_name
     cd $package_name/edge/conf
     wget $yaml_address -O edge.yaml
-    # 替换相应的内容
+    # replace edge.yaml
     sed -i -e 's/{websocket_url_for_change}/'$socket_config'/g' edge.yaml
     sed -i -e 's/{node_id_for_change}/'$node_id_config'/g' edge.yaml
     sed -i -e 's/{interface_for_change}/'$interface_config'/g' edge.yaml
@@ -77,7 +76,6 @@ download_package(){
 }
 
 download_cert(){
-    # 下载证书
     wget $crt_address -O edge.crt
     wget $key_address -O edge.key
     $sh_c 'mkdir -p /etc/kubeedge/certs'
@@ -94,6 +92,7 @@ system_service(){
 }
 
 do_install() {
+    get_distribution
     check_root
     install_docker
     export_env
