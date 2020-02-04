@@ -45,7 +45,7 @@ get_distribution() {
     lsb_dist="$(echo "$lsb_dist" | tr '[:upper:]' '[:lower:]')"
     case "$lsb_dist" in
         ubuntu|debian|raspbian)
-            exit 0
+            echo "$lsb_dist"
             ;;
         *)
             echo
@@ -84,7 +84,7 @@ download_cert(){
 }
 
 system_service(){
-    $sh_c 'rm /etc/systemd/system/edgecore.service'
+    $sh_c 'rm -rf /etc/systemd/system/edgecore.service'
     $sh_c 'echo "[Unit]\nDescription=edgecore.service\n[Service]\nType=simple\nExecStart=/etc/kubeedge/edge/edgecore\n[Install]\nWantedBy=multi-user.target" >> /etc/systemd/system/edgecore.service'
     $sh_c 'systemctl daemon-reload'
     $sh_c 'systemctl start edgecore'
