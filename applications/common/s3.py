@@ -6,7 +6,7 @@ import datetime
 import config
 import uuid
 
-s3 = boto3.client('s3', aws_access_key_id=config.S3_ACCESS,
+s3 = boto3.client('s3', region_name=config.S3_URL, aws_access_key_id=config.S3_ACCESS,
                   aws_secret_access_key=config.S3_SECRET)
 
 
