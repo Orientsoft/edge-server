@@ -13,7 +13,8 @@ def create_node(name):
         "metadata": {
             "name": name,
             "labels": {
-                "name": "edge-node"
+                "name": "edge-node",
+                "node-role.kubernetes.io/edge":""
             }
         }
     }
