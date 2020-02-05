@@ -1,6 +1,6 @@
 from flask import request, jsonify, make_response
 from flask_restful import Resource
-
+import re
 
 # from ext import role_check
 
@@ -34,10 +34,11 @@ class NodeAction(Resource):
                 oldcount = Node.query.filter(Node.name.like(name + '-%')).count()
                 if oldcount:
                     return '节点名重复', 400
-                # 校验name唯一性，并且只能为小写英文
-                for x in name:
-                    if ord(x) < 97 or ord(x) > 122:
-                        return '节点名只能为小写英文', 400
+                # 小写字母开头，可含数字，可含减号
+                pattern = "^[a-z][a-z|0-9|\-]+$"
+                result = re.search(pattern,name)
+                if not result:
+                    return '节点名首字母为小写字母，可包含-或数字', 400
             except Exception as e:
                 print(e)
                 return '后台异常', 500
