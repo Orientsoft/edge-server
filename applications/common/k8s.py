@@ -14,12 +14,21 @@ def create_node(name):
             "name": name,
             "labels": {
                 "name": "edge-node",
-                "node-role.kubernetes.io/edge":""
+                "node-role.kubernetes.io/edge": ""
             }
         }
     }
     try:
         api_instance.create_node(body, pretty='true')
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
+def delete_node(name):
+    try:
+        api_instance.delete_node(name, async_req=True)
         return True
     except Exception as e:
         print(e)

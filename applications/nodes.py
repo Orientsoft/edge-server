@@ -2,6 +2,7 @@ from flask import request, jsonify, make_response
 from flask_restful import Resource
 import re
 
+
 # from ext import role_check
 
 
@@ -36,7 +37,7 @@ class NodeAction(Resource):
                     return '节点名重复', 400
                 # 小写字母开头，可含数字，可含减号
                 pattern = "^[a-z][a-z|0-9|\-]+$"
-                result = re.search(pattern,name)
+                result = re.search(pattern, name)
                 if not result:
                     return '节点名首字母为小写字母，可包含-或数字', 400
             except Exception as e:
@@ -163,18 +164,27 @@ class NodeAction(Resource):
             return 'ERROR', 500
         return 'success', 200
 
-    # def delete(self):
-    #     from models.node import Node
-    #     from app import db
-    #     id = request.json.get('id')
-    #     if not id:
-    #         return '参数错误', 400
-    #     node_model = Node.query.get(id)
-    #     if not node_model:
-    #         return '无效的id', 400
-    #     db.session.delete(node_model)
-    #     db.session.commit()
-    #     return 'success', 200
+    def delete(self):
+        from models.node import Node
+        from app import db
+        from applications.common.k8s import get_node_status, delete_node
+        id = request.json.get('id')
+        if not id:
+            return '参数错误', 400
+        n = Node.query.get(id)
+        if not n:
+            return '无效的id', 400
+        # check node状态和是否存在nodes_has_task
+        if get_node_status(n.name):
+            return 'node在线，不可删除', 400
+        if len(n.tasks) > 0:
+            return 'node已使用，不可删除', 400
+        if delete_node(n.name):
+            db.session.delete(n)
+            db.session.commit()
+            return 'success', 200
+        else:
+            return '删除失败', 400
 
 
 class NodeDeployLink(Resource):

@@ -139,15 +139,17 @@ class ServiceNodeAction(Resource):
                     buss_tags.append({'id': y.id, 'name': y.name})
                 elif y.type == '体系':
                     tags = {'id': y.id, 'name': y.name}
-            result.append({
-                "id": d.id,
-                "name": d.name,
-                "arch": d.arch_class.name,
-                "parallel": d.parallel,
-                "online": d.online,
-                "tags": tags,
-                "buss_tags": buss_tags,
-                "createdAt": d.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.createdAt,
-                                                                                     datetime.datetime) else d.createdAt,
-            })
+            # 并发数限制
+            if d.parallel > len(d.tasks):
+                result.append({
+                    "id": d.id,
+                    "name": d.name,
+                    "arch": d.arch_class.name,
+                    "parallel": d.parallel,
+                    "online": d.online,
+                    "tags": tags,
+                    "buss_tags": buss_tags,
+                    "createdAt": d.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.createdAt,
+                                                                                         datetime.datetime) else d.createdAt,
+                })
         return result
