@@ -72,11 +72,13 @@ class TagAction(Resource):
         try:
             id = request.json.get('id')
             t = Tag.query.get(id)
-            if t:
+            if t and len(t.nodes) == 0 and len(t.services) == 0:
                 db.session.delete(t)
                 db.session.commit()
+            else:
+                return '标签已使用，无法删除', 400
         except Exception as e:
             print(e)
             db.session.rollback()
-            return '标签已被使用，无法删除', 400
+            return '标签已使用，无法删除', 400
         return 'success', 200
