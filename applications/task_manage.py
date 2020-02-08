@@ -57,7 +57,7 @@ class TaskAction(Resource):
     def get(self):
         from models.task import Task
         from applications.common.k8s import update_node_online_status
-        update_node_online_status()
+        # update_node_online_status()
         running = request.args.get('running', None)
         services_id = request.args.get('service_id', None)
         dataObj = Task.query
@@ -68,13 +68,18 @@ class TaskAction(Resource):
         resultObj = dataObj.all()
         returnObj = []
         for r in resultObj:
-            tags = {}
-            buss_tags = []
-            for y in r.nodes.tags:
-                if y.type == '业务':
-                    buss_tags.append({'id': y.id, 'name': y.name})
-                elif y.type == '体系':
-                    tags = {'id': y.id, 'name': y.name}
+            nodes = []
+            for x in r.nodes:
+                tags = {}
+                buss_tags = []
+                for y in x.tags:
+                    if y.type == '业务':
+                        buss_tags.append({'id': y.id, 'name': y.name})
+                    elif y.type == '体系':
+                        tags = {'id': y.id, 'name': y.name}
+                nodes.append({'id': x.id, 'name': x.name, 'online': x.online, 'parallel': x.parallel,
+                              'arch': x.arch_class.name, 'tags': tags, 'buss_tags': buss_tags,
+                              'createdAt': x.createdAt.strftime('%Y-%m-%d %H:%M:%S')})
             returnObj.append({
                 "id": str(r.id),
                 "name": r.name,
@@ -87,9 +92,7 @@ class TaskAction(Resource):
                 "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
                                                                                      datetime.datetime) else r.updatedAt,
                 "token": r.token,
-                "nodes": list(map(lambda x: {'id': x.id, 'name': x.name, 'online': x.online, 'parallel': x.parallel,
-                                             'arch': x.arch_class.name, 'tags': tags, 'buss_tags': buss_tags,
-                                             'createdAt': x.createdAt.strftime('%Y-%m-%d %H:%M:%S')}, r.nodes))
+                "nodes": nodes
             })
         return returnObj
 
