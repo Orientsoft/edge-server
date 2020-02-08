@@ -68,6 +68,13 @@ class TaskAction(Resource):
         resultObj = dataObj.all()
         returnObj = []
         for r in resultObj:
+            tags = {}
+            buss_tags = []
+            for y in r.nodes.tags:
+                if y.type == '业务':
+                    buss_tags.append({'id': y.id, 'name': y.name})
+                elif y.type == '体系':
+                    tags = {'id': y.id, 'name': y.name}
             returnObj.append({
                 "id": str(r.id),
                 "name": r.name,
@@ -80,8 +87,9 @@ class TaskAction(Resource):
                 "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
                                                                                      datetime.datetime) else r.updatedAt,
                 "token": r.token,
-                "nodes":list(map(lambda x: {'id': x.id, 'name': x.name, 'online': x.online, 'parallel': x.parallel,
-                                             'arch': x.arch_class.name}, r.nodes))
+                "nodes": list(map(lambda x: {'id': x.id, 'name': x.name, 'online': x.online, 'parallel': x.parallel,
+                                             'arch': x.arch_class.name, 'tags': tags, 'buss_tags': buss_tags,
+                                             'createdAt': x.createdAt.strftime('%Y-%m-%d %H:%M:%S')}, r.nodes))
             })
         return returnObj
 
@@ -192,7 +200,7 @@ class TaskDetailAction(Resource):
     def post(self, task_id):
         from models.task import Task
         from models.node import NodesHasTask
-        from applications.common.k8s import CreateDeploy,delete_deploy
+        from applications.common.k8s import CreateDeploy, delete_deploy
         from app import db
         try:
             task = Task.query.get(task_id)
@@ -205,18 +213,17 @@ class TaskDetailAction(Resource):
                 kubernetes = json.loads(task.services.kubernetes)
                 c = CreateDeploy(kubernetes, task.services.image)
                 for a in alldevice:
-                    if not c.apply(a.device_name,a.nodes.name):
-                        return '启动失败',400
+                    if not c.apply(a.device_name, a.nodes.name):
+                        return '启动失败', 400
             elif operator == 'stop':
                 task.running = False
                 for a in alldevice:
                     # 删除deployment
                     if not delete_deploy(a.device_name):
-                        return '停止失败',400
+                        return '停止失败', 400
             db.session.commit()
         except Exception as e:
             print(e)
             db.session.rollback()
             return 'ERROR', 500
         return 'success', 200
-
