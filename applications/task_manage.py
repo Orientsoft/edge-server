@@ -57,7 +57,7 @@ class TaskAction(Resource):
     def get(self):
         from models.task import Task
         from applications.common.k8s import update_node_online_status
-        # update_node_online_status()
+        update_node_online_status()
         running = request.args.get('running', None)
         services_id = request.args.get('service_id', None)
         dataObj = Task.query
