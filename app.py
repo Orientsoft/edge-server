@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, send_from_directory, session, request
+from flask import Flask, send_from_directory, session, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
 from flask_cors import CORS
@@ -42,7 +42,8 @@ api.add_resource(NodeDeployLink, '/deploy')
 def test(name):
     from applications.common.k8s import get_pod_status, create_node, create_device_model, get_node_status, \
         list_node_status
-    return get_pod_status(name), 200
+    result = get_pod_status(name)
+    return jsonify({'result': result})
 
 
 @app.before_request
