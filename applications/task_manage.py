@@ -203,7 +203,8 @@ class TaskDetailAction(Resource):
     def post(self, task_id):
         from models.task import Task
         from models.node import NodesHasTask
-        from applications.common.k8s import CreateDeploy, delete_deploy, CreatePod, delete_pod, get_node_status
+        from applications.common.k8s import CreateDeploy, delete_deploy, CreatePod, delete_pod, get_node_status, \
+            get_pod_status
         from app import db
         try:
             task = Task.query.get(task_id)
@@ -215,11 +216,9 @@ class TaskDetailAction(Resource):
             for b in baseObj:
                 if not get_node_status(b.nodes.name):
                     return '{}节点不在线'.format(b.nodes.name), 400
-                if operator == 'start':
-                    # 检查是否已经存在
-                    pass
-                if operator == 'stop':
-                    pass
+                pod_status = get_pod_status(b.device_name)
+                if operator == 'start' and pod_status:
+                    return 'pod:{}已存在'.format(b.device_name), 400
             if operator == 'start':
                 task.running = True
                 kubernetes = json.loads(task.services.kubernetes)

@@ -226,11 +226,11 @@ def delete_pod(name):
 def get_pod_status(name):
     try:
         resp = api_instance.read_namespaced_pod(name=name, namespace="default")
-        print(resp)
-        # if resp.status.conditions[-1].status == 'True':
-        #     return True
-        # else:
-        #     return False
+        # print(resp)
+        if resp.status.conditions[-1].status == 'True':
+            return True
+        else:
+            return False
     except:
         print('k8s client error')
         return False
