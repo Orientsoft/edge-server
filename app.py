@@ -38,10 +38,11 @@ api.add_resource(NodeAction, '/node')
 api.add_resource(NodeDeployLink, '/deploy')
 
 
-@app.route('/test/<name>', methods=['GET'])
-def test(name):
+@app.route('/test', methods=['GET'])
+def test():
     from applications.common.k8s import get_pod_exist, create_node, create_device_model, get_node_status, \
         list_node_status
+    name = request.args.get('name', None)
     result = get_pod_exist(name)
     return jsonify({'result': result})
 
