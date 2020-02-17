@@ -223,11 +223,11 @@ def delete_pod(name):
         return False
 
 
-def get_pod_status(name):
+def get_pod_exist(name):
     try:
         resp = api_instance.read_namespaced_pod(name=name, namespace="default")
-        # print(resp)
-        if resp.status.conditions[-1].status == 'True':
+        print(resp)
+        if resp.status:
             return True
         else:
             return False
