@@ -30,7 +30,7 @@ check_root(){
 }
 # install docker
 install_docker(){
-    curl -sSL https://get.docker.com | sh
+    curl -sSL https://get.daocloud.io/docker | sh
 }
 # check_os
 get_distribution() {

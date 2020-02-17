@@ -203,18 +203,27 @@ class TaskDetailAction(Resource):
     def post(self, task_id):
         from models.task import Task
         from models.node import NodesHasTask
-        from applications.common.k8s import CreateDeploy, delete_deploy
+        from applications.common.k8s import CreateDeploy, delete_deploy, CreatePod, delete_pod, get_node_status
         from app import db
         try:
             task = Task.query.get(task_id)
             if not task:
                 return '任务不存在', 400
             operator = request.json.get('operator')  # start / stop
-            alldevice = NodesHasTask.query.filter_by(task_id=task_id).all()
+            baseObj = alldevice = NodesHasTask.query.filter_by(task_id=task_id).all()
+            # 检查该task对应的node是否都在线
+            for b in baseObj:
+                if not get_node_status(b.nodes.name):
+                    return '{}节点不在线'.format(b.nodes.name), 400
+                if operator == 'start':
+                    # 检查是否已经存在
+                    pass
+                if operator == 'stop':
+                    pass
             if operator == 'start':
                 task.running = True
                 kubernetes = json.loads(task.services.kubernetes)
-                c = CreateDeploy(kubernetes, task.services.image)
+                c = CreatePod(kubernetes, task.services.image)
                 for a in alldevice:
                     if not c.apply(a.device_name, a.nodes.name):
                         return '启动失败', 400
@@ -222,7 +231,7 @@ class TaskDetailAction(Resource):
                 task.running = False
                 for a in alldevice:
                     # 删除deployment
-                    if not delete_deploy(a.device_name):
+                    if not delete_pod(a.device_name):
                         return '停止失败', 400
             db.session.commit()
         except Exception as e:

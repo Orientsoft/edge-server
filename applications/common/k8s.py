@@ -169,6 +169,73 @@ def delete_deploy(name):
         return False
 
 
+class CreatePod:
+    def __init__(self, kubernetes, image):
+        self.kubernetes = kubernetes  # service.kubernetes
+        self.image = image  # service.image
+
+    # node_has_task.devicename = podName
+    def apply(self, devicename, nodename):
+        env = self.kubernetes['env'] if 'env' in self.kubernetes else []
+        volumeMounts = self.kubernetes['volumeMounts'] if 'volumeMounts' in self.kubernetes else []
+        volumes = self.kubernetes['volumes'] if 'volumes' in self.kubernetes else []
+        env.append({
+            'name': 'DEVICE_ID', 'value': devicename
+        })
+        body = {'apiVersion': 'v1',
+                'kind': 'Pod',
+                'metadata': {'name': devicename, 'namespace': 'default'},
+                'spec': {'nodeName': nodename,
+                         'hostNetwork': True,
+                         'containers':
+                             [{'name': devicename,
+                               'image': self.image,
+                               'volumeMounts': volumeMounts,
+                               'env': env,
+                               'securityContext': {'privileged': True}}],
+                         'imagePullSecrets': [{'name': app.config['IMAGE_PULL_SECRET']}],
+                         'volumes': volumes
+                         }}
+        print(body)
+        try:
+            api_instance.create_namespaced_pod(
+                namespace="default",
+                body=body
+            )
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+
+def delete_pod(name):
+    try:
+        api_instance.delete_namespaced_pod(
+            name=name,
+            namespace="default",
+            async_req=False
+        )
+        # result = thread.get()
+        # print(result)
+        return True
+    except:
+        print('k8s client error')
+        return False
+
+
+def get_pod_status(name):
+    try:
+        resp = api_instance.read_namespaced_pod(name=name, namespace="default")
+        print(resp)
+        if resp.status.conditions[-1].status == 'True':
+            return True
+        else:
+            return False
+    except:
+        print('k8s client error')
+        return False
+
+
 def get_node_status(name):
     try:
         resp = api_instance.read_node(name)
