@@ -40,15 +40,15 @@ api.add_resource(NodeDeployLink, '/deploy')
 
 @app.route('/test/<name>', methods=['GET'])
 def test(name):
-    from applications.common.k8s import create_node, create_device_model, get_node_status, \
+    from applications.common.k8s import get_pod_status, create_node, create_device_model, get_node_status, \
         list_node_status
-    list_node_status()
+    get_pod_status(name)
     return ''
 
 
 @app.before_request
 def check_login():
-    if request.path in ['/api/v1/login','/api/v1/deploy'] and request.method in ['POST', 'GET', 'OPTIONS']:
+    if request.path in ['/api/v1/login', '/api/v1/deploy', 'test'] and request.method in ['POST', 'GET', 'OPTIONS']:
         pass
     elif request.path == '/api/v1/logout' and request.method in ['GET']:
         # 登出
