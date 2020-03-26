@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -e
 package_address='address_for_replace'
-package_name='package_for_replace'
 crt_address='crt_for_replace'
 key_address='key_for_replace'
+ca_address='ca_for_replace'
 yaml_address='yaml_for_replace'
 socket_config='socket_for_replace'
 node_id_config='node_id_for_replace'
@@ -61,26 +61,38 @@ export_env(){
     $sh_c 'echo xhost + >> /etc/profile'
 }
 
-download_package(){
-    wget $package_address -O $package_name
-    tar -xvf $package_name
-    cd $package_name/edge/conf
-    wget $yaml_address -O edge.yaml
-    # replace edge.yaml
-    sed -i -e 's/{websocket_url_for_change}/'$socket_config'/g' edge.yaml
-    sed -i -e 's/{node_id_for_change}/'$node_id_config'/g' edge.yaml
-    sed -i -e 's/{interface_for_change}/'$interface_config'/g' edge.yaml
-    sed -i -e 's/{podsandboximage_for_change}/'$image_config'/g' edge.yaml
-    cd ../../
-    $sh_c 'mv edge/ /etc/kubeedge/edge/'
+create_dir(){
+    $sh_c 'mkdir -p /etc/kubeedge/certs'
+    $sh_c 'mkdir -p /etc/kubeedge/ca'
+    $sh_c 'mkdir -p /etc/kubeedge/config'
+    $sh_c 'mkdir -p /etc/kubeedge/edge'
 }
 
 download_cert(){
     wget $crt_address -O edge.crt
     wget $key_address -O edge.key
-    $sh_c 'mkdir -p /etc/kubeedge/certs'
+    wget $ca_address -O rootCA.crt
     $sh_c 'mv edge.crt /etc/kubeedge/certs/edge.crt'
     $sh_c 'mv edge.key /etc/kubeedge/certs/edge.key'
+    $sh_c 'mv rootCA.crt /etc/kubeedge/ca/rootCA.crt'
+}
+
+download_config(){
+    wget $yaml_address -O edgecore.yaml
+    # replace edge.yaml
+    sed -i -e 's/{websocket_url_for_change}/'$socket_config'/g' edgecore.yaml
+    sed -i -e 's/{node_id_for_change}/'$node_id_config'/g' edgecore.yaml
+    sed -i -e 's/{interface_for_change}/'$interface_config'/g' edgecore.yaml
+    sed -i -e 's/{podsandboximage_for_change}/'$image_config'/g' edgecore.yaml
+    # todo获取网卡ip
+    sed -i -e 's/{ip_for_change}/''/g' edgecore.yaml
+    $sh_c 'mv edgecore.yaml /etc/kubeedge/config/edgecore.yaml'
+}
+
+download_package(){
+    wget $package_address -O edgecore
+    chmod 777 edgecore
+    $sh_c 'mv edgecore /etc/kubeedge/edge/edgecore'
 }
 
 system_service(){
@@ -96,7 +108,9 @@ do_install() {
     check_root
     install_docker
     export_env
+    create_dir
     download_cert
+    download_config
     download_package
     system_service
     exit 1
