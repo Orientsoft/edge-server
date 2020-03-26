@@ -86,11 +86,10 @@ download_config(){
     #get interface
     ifaces=`ls /sys/class/net`
     echo $ifaces
-    echo 'please choose interface:>'
     temp=true
     while $temp
     do
-        read iface
+        read -p "chosse interface:>" -t 100 iface
         for i in $ifaces
             do
                 if [ "${i}" = "$iface" ] ;then
@@ -102,7 +101,7 @@ download_config(){
             echo 'please choose correct interface:'
         fi
     done
-    ip="$(ip addr show "$iface"|grep "inet\b"|awk '{print $2}')"
+    ip="$(ip addr show "$iface"|grep "inet\b"|awk '{print $2}'|cut -d "/" -f1)"
     echo $ip
 
     sed -i -e 's/{interface_for_change}/'$iface'/g' edgecore.yaml
