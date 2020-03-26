@@ -82,10 +82,32 @@ download_config(){
     # replace edge.yaml
     sed -i -e 's/{websocket_url_for_change}/'$socket_config'/g' edgecore.yaml
     sed -i -e 's/{node_id_for_change}/'$node_id_config'/g' edgecore.yaml
-    sed -i -e 's/{interface_for_change}/'$interface_config'/g' edgecore.yaml
     sed -i -e 's/{podsandboximage_for_change}/'$image_config'/g' edgecore.yaml
-    # todo获取网卡ip
-    sed -i -e 's/{ip_for_change}/''/g' edgecore.yaml
+    #get interface
+    ifaces=`ls /sys/class/net`
+    echo $ifaces
+    echo 'please choose interface:>'
+    temp=true
+    while $temp
+    do
+        read iface
+        for i in $ifaces
+            do
+                if [ "${i}" = "$iface" ] ;then
+                    temp=false
+                    break
+                fi
+            done
+        if [ "$temp" = true ];then
+            echo 'please choose correct interface:'
+        fi
+    done
+    ip="$(ip addr show "$iface"|grep "inet\b"|awk '{print $2}')"
+    echo $ip
+
+    sed -i -e 's/{interface_for_change}/'$iface'/g' edgecore.yaml
+    sed -i -e 's/{ip_for_change}/'$ip'/g' edgecore.yaml
+
     $sh_c 'mv edgecore.yaml /etc/kubeedge/config/edgecore.yaml'
 }
 
