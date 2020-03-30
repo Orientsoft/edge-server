@@ -148,6 +148,12 @@ class CreateDeploy:
                                      'env': env,
                                      'securityContext': {'privileged': True}}],
                                'imagePullSecrets': [{'name': app.config['IMAGE_PULL_SECRET']}],
+                               'tolerations': [
+                                   {'effect': 'NoExecute', 'key': 'node.kubernetes.io/not-ready', 'operator': 'Exists',
+                                    'tolerationSeconds': 86400},
+                                   {'effect': 'NoExecute', 'key': 'node.kubernetes.io/unreachable',
+                                    'operator': 'Exists',
+                                    'tolerationSeconds': 86400}],
                                'volumes': volumes
                                }}}}
         try:
