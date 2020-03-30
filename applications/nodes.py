@@ -42,6 +42,7 @@ class NodeAction(Resource):
                     return '节点名首字母为小写字母，可包含-或数字', 400
             except Exception as e:
                 print(e)
+                db.session.rollback()
                 return '后台异常', 500
             for x in range(1, count + 1):
                 token_before = name + '-' + str(x) + str(time.time())

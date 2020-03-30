@@ -274,4 +274,5 @@ def update_node_online_status():
         return True
     except Exception as e:
         print(e)
+        db.session.rollback()
         return False

@@ -57,44 +57,47 @@ class TaskAction(Resource):
     def get(self):
         from models.task import Task
         from applications.common.k8s import update_node_online_status
-        update_node_online_status()
-        running = request.args.get('running', None)
-        services_id = request.args.get('service_id', None)
-        dataObj = Task.query
-        if running:
-            dataObj = dataObj.filter_by(running=running)
-        if services_id:
-            dataObj = dataObj.filter_by(services_id)
-        resultObj = dataObj.all()
-        returnObj = []
-        for r in resultObj:
-            nodes = []
-            for x in r.nodes:
-                tags = {}
-                buss_tags = []
-                for y in x.tags:
-                    if y.type == '业务':
-                        buss_tags.append({'id': y.id, 'name': y.name})
-                    elif y.type == '体系':
-                        tags = {'id': y.id, 'name': y.name}
-                nodes.append({'id': x.id, 'name': x.name, 'online': x.online, 'parallel': x.parallel,
-                              'arch': x.arch_class.name, 'tags': tags, 'buss_tags': buss_tags,
-                              'createdAt': x.createdAt.strftime('%Y-%m-%d %H:%M:%S')})
-            returnObj.append({
-                "id": str(r.id),
-                "name": r.name,
-                "service_id": r.services_id,
-                "service_name": r.services.name,
-                "service_image": r.services.image,
-                "running": r.running,
-                "createdAt": r.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.createdAt,
-                                                                                     datetime.datetime) else r.createdAt,
-                "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
-                                                                                     datetime.datetime) else r.updatedAt,
-                "token": r.token,
-                "nodes": nodes
-            })
-        return returnObj
+        try:
+            update_node_online_status()
+            running = request.args.get('running', None)
+            services_id = request.args.get('service_id', None)
+            dataObj = Task.query
+            if running:
+                dataObj = dataObj.filter_by(running=running)
+            if services_id:
+                dataObj = dataObj.filter_by(services_id)
+            resultObj = dataObj.all()
+            returnObj = []
+            for r in resultObj:
+                nodes = []
+                for x in r.nodes:
+                    tags = {}
+                    buss_tags = []
+                    for y in x.tags:
+                        if y.type == '业务':
+                            buss_tags.append({'id': y.id, 'name': y.name})
+                        elif y.type == '体系':
+                            tags = {'id': y.id, 'name': y.name}
+                    nodes.append({'id': x.id, 'name': x.name, 'online': x.online, 'parallel': x.parallel,
+                                  'arch': x.arch_class.name, 'tags': tags, 'buss_tags': buss_tags,
+                                  'createdAt': x.createdAt.strftime('%Y-%m-%d %H:%M:%S')})
+                returnObj.append({
+                    "id": str(r.id),
+                    "name": r.name,
+                    "service_id": r.services_id,
+                    "service_name": r.services.name,
+                    "service_image": r.services.image,
+                    "running": r.running,
+                    "createdAt": r.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.createdAt,
+                                                                                         datetime.datetime) else r.createdAt,
+                    "updatedAt": r.updatedAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(r.updatedAt,
+                                                                                         datetime.datetime) else r.updatedAt,
+                    "token": r.token,
+                    "nodes": nodes
+                })
+            return returnObj
+        except:
+            return []
 
     def patch(self):
         from models.task import Task
@@ -177,28 +180,31 @@ class TaskDetailAction(Resource):
         returnObj['nodes'] = []
         from models.task import Task
         from models.node import NodesHasTask
-        task = Task.query.get(task_id)
-        if not task:
-            return '任务不存在', 400
-        dataObj = NodesHasTask.query.filter_by(task_id=task_id).all()
-        for d in dataObj:
-            returnObj['nodes'].append({
-                "node_id": d.nodes_id,
-                "device_name": d.device_name,
-                "node_name": d.nodes.name,
-                "node_arch": d.nodes.arch_class.name,
-                "node_parallel": d.nodes.parallel,
-                "node_online": d.nodes.online,
-                "node_createdAt": d.nodes.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.nodes.createdAt,
-                                                                                                datetime.datetime) else d.nodes.createdAt,
-            })
-        returnObj['task_id'] = task_id
-        returnObj['task_running'] = task.running
-        returnObj['task_name'] = task.name
-        returnObj['task_token'] = task.token
-        # returnObj['service'] = {"name": task.services.name, "description": task.services.description,
-        #                         "image": task.services.image}
-        return returnObj
+        try:
+            task = Task.query.get(task_id)
+            if not task:
+                return '任务不存在', 400
+            dataObj = NodesHasTask.query.filter_by(task_id=task_id).all()
+            for d in dataObj:
+                returnObj['nodes'].append({
+                    "node_id": d.nodes_id,
+                    "device_name": d.device_name,
+                    "node_name": d.nodes.name,
+                    "node_arch": d.nodes.arch_class.name,
+                    "node_parallel": d.nodes.parallel,
+                    "node_online": d.nodes.online,
+                    "node_createdAt": d.nodes.createdAt.strftime('%Y-%m-%d %H:%M:%S') if isinstance(d.nodes.createdAt,
+                                                                                                    datetime.datetime) else d.nodes.createdAt,
+                })
+            returnObj['task_id'] = task_id
+            returnObj['task_running'] = task.running
+            returnObj['task_name'] = task.name
+            returnObj['task_token'] = task.token
+            # returnObj['service'] = {"name": task.services.name, "description": task.services.description,
+            #                         "image": task.services.image}
+            return returnObj
+        except:
+            return {}
 
     def post(self, task_id):
         from models.task import Task
