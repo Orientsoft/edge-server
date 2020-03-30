@@ -118,7 +118,7 @@ download_package(){
 
 system_service(){
     $sh_c 'rm -rf /etc/systemd/system/edgecore.service'
-    $sh_c 'echo "[Unit]\nDescription=edgecore.service\n[Service]\nType=simple\nExecStart=/etc/kubeedge/edge/edgecore\n[Install]\nWantedBy=multi-user.target" >> /etc/systemd/system/edgecore.service'
+    $sh_c 'echo "[Unit]\nDescription=edgecore.service\n[Service]\nType=simple\nExecStart=/etc/kubeedge/edge/edgecore\nExecReload=/bin/kill -s HUP $MAINPID\nTimeoutSec=0\nRestartSec=2\nRestart=always\n[Install]\nWantedBy=multi-user.target" >> /etc/systemd/system/edgecore.service'
     $sh_c 'systemctl daemon-reload'
     $sh_c 'systemctl start edgecore'
     $sh_c 'systemctl enable edgecore'
